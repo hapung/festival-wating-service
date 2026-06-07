@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부스 모바일 웨이팅 & 주문</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0d0e12;
+            --card-bg: #161820;
+            --primary: #ff5e3a;
+            --primary-gradient: linear-gradient(135deg, #ff5e3a 0%, #ff2a6d 100%);
+            --secondary: #00f0ff;
+            --text-main: #f5f6fa;
+            --text-muted: #8f92a1;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --success: #00e676;
+            --warning: #ffea00;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .mobile-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #12131a;
+            min-height: 100vh;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            padding-bottom: 80px;
+        }
+
+        /* Header Styling */
+        header {
+            padding: 24px 20px;
+            background: linear-gradient(180deg, rgba(22, 24, 32, 0.95) 0%, rgba(18, 19, 26, 0.95) 100%);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .qr-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--secondary);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            cursor: pointer;
+        }
+
+        .booth-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 8px;
+        }
+
+        .booth-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .booth-loc {
+            font-size: 12px;
+            color: var(--secondary);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 8px;
+            background: rgba(0, 240, 255, 0.05);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* Main Content */
+        .content {
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        /* Real-time Waiting Widget */
+        .waiting-status-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .waiting-status-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary-gradient);
+        }
+
+        .waiting-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .waiting-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .waiting-badge {
+            background: rgba(255, 94, 58, 0.15);
+            color: var(--primary);
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+        .waiting-body {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .waiting-count {
+            font-size: 40px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .waiting-unit {
+            font-size: 16px;
+            color: var(--text-muted);
+        }
+
+        /* Menu Section */
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 30px;
+        }
+
+        .menu-item {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .menu-info {
+            flex-grow: 1;
+            padding-right: 12px;
+        }
+
+        .menu-name-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .menu-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .specialty-badge {
+            background: linear-gradient(135deg, #00f0ff 0%, #0072ff 100%);
+            color: #000;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .menu-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .menu-price {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Waiting Registration Form */
+        .register-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 16px;
+            color: var(--text-main);
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(255, 94, 58, 0.25);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 10px;
+            padding: 16px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            box-shadow: 0 4px 15px rgba(255, 94, 58, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        /* Ticket / Live Tracking Panel */
+        .ticket-container {
+            background: #1e1b29;
+            border-radius: 16px;
+            border: 2px dashed rgba(255, 94, 58, 0.3);
+            padding: 24px;
+            text-align: center;
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .ticket-glow {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 16px;
+            border: 2px solid var(--primary);
+            opacity: 0.3;
+            animation: pulse-border 2s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse-border {
+            0% { opacity: 0.2; }
+            50% { opacity: 0.6; }
+            100% { opacity: 0.2; }
+        }
+
+        .ticket-title {
+            font-size: 13px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .ticket-number-box {
+            background: rgba(255, 94, 58, 0.08);
+            display: inline-block;
+            padding: 10px 24px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 94, 58, 0.2);
+            margin-bottom: 16px;
+        }
+
+        .ticket-number {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .ticket-status {
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            display: inline-block;
+        }
+
+        .status-dot.active {
+            animation: blink 1.2s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+
+        .ticket-queue-info {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .ticket-cancel-btn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .ticket-cancel-btn:hover {
+            background: rgba(255, 0, 0, 0.1);
+            color: #ff4d4d;
+            border-color: rgba(255, 0, 0, 0.2);
+        }
+
+        /* Modal Overlay for QR print view */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            color: var(--text-muted);
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .modal-qr-img {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Alert Overlay */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(22, 24, 32, 0.95);
+            border: 1px solid var(--primary);
+            color: var(--text-main);
+            padding: 14px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 2000;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Header -->
+        <header>
+            <div class="header-top">
+                <a href="index.html" class="back-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    홈으로
+                </a>
+                <span class="qr-badge" id="qrBadge">상점 QR 발급</span>
+            </div>
+            <div class="booth-title" id="boothName">상점 상세 정보</div>
+            <div class="booth-desc" id="boothDesc">로딩 중...</div>
+            <div class="booth-loc" id="boothLocation">먹거리 존</div>
+        </header>
+
+        <!-- Main Body -->
+        <div class="content">
+            <!-- Waiting Tracker (Visible if user has active ticket) -->
+            <div id="liveTracker" style="display: none;">
+                <div class="ticket-container">
+                    <div class="ticket-glow"></div>
+                    <div class="ticket-title">MY WAITING TICKET</div>
+                    <div class="ticket-number-box">
+                        <div class="ticket-number" id="myTicketNumber">0</div>
+                    </div>
+                    <div class="ticket-status" id="myTicketStatus">
+                        <span class="status-dot active"></span>
+                        <span id="myTicketStatusText">순번 대기 중</span>
+                    </div>
+                    <div class="ticket-queue-info" id="myTicketQueue">
+                        내 앞 대기팀: <strong id="myAheadCount" style="color: var(--primary);">0</strong>팀
+                    </div>
+                    <button class="ticket-cancel-btn" id="cancelWaitingBtn">대기 취소하기</button>
+                </div>
+            </div>
+
+            <!-- Real-time Waiting Widget -->
+            <div class="waiting-status-card" id="waitingCard">
+                <div class="waiting-header">
+                    <span class="waiting-title">실시간 대기 현황</span>
+                    <span class="waiting-badge">REAL-TIME</span>
+                </div>
+                <div class="waiting-body">
+                    <span class="waiting-count" id="currentWaitingCount">0</span>
+                    <span class="waiting-unit">팀 대기 중</span>
+                </div>
+            </div>
+
+            <!-- Menu List -->
+            <div class="section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                대표 판매 메뉴
+            </div>
+            <div class="menu-list" id="menuList">
+                <!-- Menu items injected dynamically -->
+            </div>
+
+            <!-- Waiting Register Form (Visible if user does NOT have active ticket) -->
+            <div class="register-card" id="registerCard">
+                <div class="section-title" style="margin-bottom: 8px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    대기 등록 신청
+                </div>
+                <div class="form-label" style="margin-bottom: 16px;">매장에 입장할 휴대폰 번호를 입력하면 접수 완료와 동시에 실시간 카카오 알림톡/SMS가 발송됩니다.</div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="phoneInput">휴대폰 번호</label>
+                    <input type="tel" id="phoneInput" class="form-input" placeholder="010-1234-5678" maxlength="13">
+                </div>
+                <button class="submit-btn" id="registerWaitingBtn">웨이팅 신청하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Modal -->
+    <div class="modal" id="qrModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeModal">&times;</button>
+            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--text-main);">상점 전용 QR 코드</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">이 QR을 인쇄하여 매장 앞/테이블에 비치하면, 손님이 모바일로 주문 및 대기열을 바로 신청할 수 있습니다.</p>
+            <img class="modal-qr-img" id="modalQrImg" src="" alt="QR CODE">
+            <div style="font-size: 11px; color: var(--secondary); word-break: break-all;" id="qrLinkText"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">알림 메시지</div>
+
+    <!-- Scripts -->
+    <script>
+        // Global State
+        let boothId = null;
+        let activeTicket = null; // { waitingId, waitingNumber, status, phoneNumber }
+        let pollingInterval = null;
+
+        // Dom Elements
+        const elBoothName = document.getElementById('boothName');
+        const elBoothDesc = document.getElementById('boothDesc');
+        const elBoothLocation = document.getElementById('boothLocation');
+        const elCurrentWaitingCount = document.getElementById('currentWaitingCount');
+        const elMenuList = document.getElementById('menuList');
+        const elPhoneInput = document.getElementById('phoneInput');
+        const elRegisterCard = document.getElementById('registerCard');
+        const elLiveTracker = document.getElementById('liveTracker');
+        const elMyTicketNumber = document.getElementById('myTicketNumber');
+        const elMyTicketStatusText = document.getElementById('myTicketStatusText');
+        const elMyAheadCount = document.getElementById('myAheadCount');
+        const elMyTicketQueue = document.getElementById('myTicketQueue');
+
+        // Toast Helper
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Phone Format Helper
+        document.getElementById('phoneInput').addEventListener('input', function(e) {
+            let val = e.target.value.replace(/[^0-9]/g, '');
+            if (val.length > 3 && val.length <= 7) {
+                e.target.value = val.slice(0, 3) + '-' + val.slice(3);
+            } else if (val.length > 7) {
+                e.target.value = val.slice(0, 3) + '-' + val.slice(3, 7) + '-' + val.slice(7, 11);
+            }
+        });
+
+        // Parse URL params
+        function initParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            boothId = urlParams.get('boothId');
+            if (!boothId) {
+                showToast("잘못된 접근입니다. 부스 ID가 없습니다.");
+                setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+                return;
+            }
+            
+            // Check local storage for active waiting ticket for this specific booth
+            const storedTicket = localStorage.getItem(`waiting_ticket_booth_${boothId}`);
+            if (storedTicket) {
+                activeTicket = JSON.parse(storedTicket);
+                showTrackerView();
+                startPolling();
+            }
+            
+            loadBoothDetail();
+        }
+
+        // Fetch Booth Detail
+        async function loadBoothDetail() {
+            try {
+                const res = await fetch(`/api/booths/${boothId}`);
+                if (!res.ok) throw new Error("부스 정보를 불러오지 못했습니다.");
+                const data = await res.json();
+                
+                elBoothName.textContent = data.name;
+                elBoothDesc.textContent = data.description || "등록된 소개글이 없습니다.";
+                elBoothLocation.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px; vertical-align:middle;"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path><circle cx="12" cy="10" r="3"></circle></svg>${data.locationDescription}`;
+                elCurrentWaitingCount.textContent = data.currentWaitingCount;
+
+                // Set QR Code Modal
+                document.getElementById('modalQrImg').src = data.qrCodeUrl;
+                document.getElementById('qrLinkText').textContent = `http://localhost:8080/booth.html?boothId=${boothId}`;
+
+                // Render Menu List
+                elMenuList.innerHTML = '';
+                if (!data.products || data.products.length === 0) {
+                    elMenuList.innerHTML = '<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:20px;">판매 중인 메뉴가 없습니다.</div>';
+                } else {
+                    data.products.forEach(prod => {
+                        const div = document.createElement('div');
+                        div.className = 'menu-item';
+                        div.innerHTML = `
+                            <div class="menu-info">
+                                <div class="menu-name-row">
+                                    <span class="menu-name">${prod.name}</span>
+                                    ${prod.isSpecialty ? '<span class="specialty-badge">특산품</span>' : ''}
+                                </div>
+                                <div class="menu-desc">${prod.description || ""}</div>
+                                <div class="menu-price">${prod.price.toLocaleString()}원</div>
+                            </div>
+                        `;
+                        elMenuList.appendChild(div);
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("부스 정보를 가져오는데 실패했습니다.");
+            }
+        }
+
+        // Show Ticket View
+        function showTrackerView() {
+            elRegisterCard.style.display = 'none';
+            elLiveTracker.style.display = 'block';
+            elMyTicketNumber.textContent = activeTicket.waitingNumber;
+            updateStatusStyle(activeTicket.status);
+        }
+
+        // Show Registration Form View
+        function showRegisterView() {
+            elLiveTracker.style.display = 'none';
+            elRegisterCard.style.display = 'block';
+            stopPolling();
+            localStorage.removeItem(`waiting_ticket_booth_${boothId}`);
+            activeTicket = null;
+        }
+
+        function updateStatusStyle(status) {
+            const dot = elLiveTracker.querySelector('.status-dot');
+            if (status === 'WAITING') {
+                elMyTicketStatusText.textContent = "순번 대기 중";
+                elMyTicketStatusText.style.color = "var(--text-main)";
+                dot.style.backgroundColor = "var(--secondary)";
+                elMyTicketQueue.style.display = 'block';
+            } else if (status === 'CALLED') {
+                elMyTicketStatusText.textContent = "★ 지금 방문하세요! (호출됨)";
+                elMyTicketStatusText.style.color = "var(--success)";
+                dot.style.backgroundColor = "var(--success)";
+                elMyTicketQueue.style.display = 'none';
+                
+                // Play simple alarm notification beep
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, ctx.currentTime); // A5 note
+                    osc.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.3);
+                } catch(e){}
+                showToast("손님 순서가 되었습니다! 상점으로 방문해주세요.");
+            } else if (status === 'COMPLETED') {
+                elMyTicketStatusText.textContent = "이용 완료";
+                elMyTicketStatusText.style.color = "var(--text-muted)";
+                dot.style.backgroundColor = "var(--text-muted)";
+                elMyTicketQueue.style.display = 'none';
+                showToast("상점 방문이 정상 완료 처리되었습니다. 이용해 주셔서 감사합니다!");
+                setTimeout(showRegisterView, 5000);
+            } else if (status === 'CANCELLED') {
+                elMyTicketStatusText.textContent = "대기 취소됨";
+                elMyTicketStatusText.style.color = "#ff4d4d";
+                dot.style.backgroundColor = "#ff4d4d";
+                elMyTicketQueue.style.display = 'none';
+                showToast("대기 예약이 취소되었습니다.");
+                setTimeout(showRegisterView, 4000);
+            }
+        }
+
+        // Register Waiting Action
+        document.getElementById('registerWaitingBtn').addEventListener('click', async () => {
+            const phone = elPhoneInput.value;
+            if (!phone || phone.length < 12) {
+                showToast("올바른 휴대폰 번호를 입력해 주세요.");
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/booths/${boothId}/waitings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber: phone })
+                });
+
+                if (!res.ok) {
+                    const errText = await res.text();
+                    throw new Error(errText || "대기 신청에 실패했습니다.");
+                }
+
+                const data = await res.json();
+                activeTicket = {
+                    waitingId: data.waitingId,
+                    waitingNumber: data.waitingNumber,
+                    status: data.status,
+                    phoneNumber: phone
+                };
+
+                // Store in LocalStorage
+                localStorage.setItem(`waiting_ticket_booth_${boothId}`, JSON.stringify(activeTicket));
+                
+                showToast("대기열 등록 성공! 알림 문자가 전송되었습니다.");
+                showTrackerView();
+                startPolling();
+                
+                // Refresh booth details (to reflect updated waiting count)
+                loadBoothDetail();
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || "대기 접수 중 오류가 발생했습니다.");
+            }
+        });
+
+        // Cancel Waiting Action
+        document.getElementById('cancelWaitingBtn').addEventListener('click', async () => {
+            if (!activeTicket) return;
+            if (!confirm("대기 신청을 취소하시겠습니까?")) return;
+
+            try {
+                const res = await fetch(`/api/waitings/${activeTicket.waitingId}/cancel`, {
+                    method: 'POST'
+                });
+
+                if (!res.ok) throw new Error("대기 취소 처리에 실패했습니다.");
+
+                showToast("대기가 취소되었습니다.");
+                showRegisterView();
+                loadBoothDetail();
+            } catch (err) {
+                console.error(err);
+                showToast("대기 취소 중 오류가 발생했습니다.");
+            }
+        });
+
+        // Poll waiting status
+        function startPolling() {
+            if (pollingInterval) clearInterval(pollingInterval);
+            pollingInterval = setInterval(async () => {
+                if (!activeTicket) return;
+                try {
+                    // We can check waiting status by querying the booth's waitings or fetching details
+                    // For safety, let's query booth detail to update waitCount,
+                    // and use a custom query or match the list of waitings if available.
+                    // Instead of creating a new API, we can fetch the booth detailed list and look for our status,
+                    // OR we can query the waiting state directly.
+                    // Wait, since we don't have a single GET /api/waitings/{id} endpoint yet, we can check the booth's
+                    // waiting queue, or we can add a single check waiting status API.
+                    // Let's add a GET /api/waitings/{waitingId} endpoint to make this extremely robust, or parse through booths.
+                    // Actually, a simple GET /api/waitings/{waitingId} is the standard way to check a ticket's status.
+                    // Let's first make a fetch to a new endpoint `/api/waitings/{waitingId}` which we'll add to the backend!
+                    const res = await fetch(`/api/waitings/${activeTicket.waitingId}/status`);
+                    if (res.ok) {
+                        const data = await res.json(); // { waitingId, status, waitingNumber, aheadCount }
+                        activeTicket.status = data.status;
+                        localStorage.setItem(`waiting_ticket_booth_${boothId}`, JSON.stringify(activeTicket));
+                        updateStatusStyle(data.status);
+                        elMyAheadCount.textContent = data.aheadCount;
+                    }
+                    
+                    // Also refresh general waiting count
+                    loadBoothDetail();
+                } catch(e) {
+                    console.error("Polling error", e);
+                }
+            }, 4000);
+        }
+
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+
+        // QR Modal Controls
+        const modal = document.getElementById('qrModal');
+        document.getElementById('qrBadge').addEventListener('click', () => {
+            modal.style.display = 'flex';
+        });
+        document.getElementById('closeModal').addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Init
+        window.onload = initParams;
+    </script>
+</body>
+</html>

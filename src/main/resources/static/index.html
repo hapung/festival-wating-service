@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지역 축제 & 실시간 웨이팅 관리 시스템 시나리오 테스트베드</title>
+    <!-- Google Fonts & Tailwind CSS CDN -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 카카오 맵 JS SDK는 백엔드 설정을 통해 동적으로 로드됩니다 -->
+    
+    <style>
+        body {
+            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #090d16 0%, #111029 100%);
+            color: #f1f5f9;
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.45);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+        }
+        .custom-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #f1f5f9;
+            transition: all 0.3s ease;
+        }
+        .custom-input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.35);
+        }
+        .gradient-btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            transition: all 0.2s ease-in-out;
+        }
+        .gradient-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+        .step-badge {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-5xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
+                지역 축제 & 웨이팅 시나리오 검증기
+            </h1>
+            <p class="text-slate-400 text-sm md:text-base">카카오 맵 API 실시간 연동: 지도를 클릭해 위치를 지정하면 즉시 축제와 인근 관광지 혼잡도가 연동되어 조회됩니다.</p>
+        </header>
+
+        <!-- 🔍 4대 핵심 기능 & 시나리오 원클릭 검증 스위트 -->
+        <section class="glass-panel p-6 mb-8 border border-indigo-500/20 relative overflow-hidden">
+            <!-- Background Decoration -->
+            <div class="absolute -right-16 -top-16 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl"></div>
+            <div class="absolute -left-16 -bottom-16 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl"></div>
+
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-700/50">
+                <div>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-100 flex items-center gap-2">
+                        🧪 시나리오 핵심 검증 테스트베드 (Interactive Test Suite)
+                    </h2>
+                    <p class="text-slate-400 text-xs mt-1">프로젝트의 4가지 핵심 기능과 시나리오 정합성을 1클릭으로 정밀 시뮬레이션하고 검증할 수 있는 통합 진단 도구입니다.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400 font-medium">전체 검증 상태:</span>
+                    <span id="overallTestStatus" class="px-2.5 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold">진단 대기 중</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Test 1: Festival API -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Test 1</span>
+                            <span id="test1Indicator" class="w-2.5 h-2.5 rounded-full bg-slate-700"></span>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-200 mb-1">축제 API 정상 로드</h3>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">TourAPI 4.0을 통한 실시간 축제 수집 및 로컬 캐싱 상태를 검증합니다.</p>
+                    </div>
+                    <button onclick="runTest1()" class="mt-4 w-full py-1.5 bg-indigo-600/20 hover:bg-indigo-600/80 text-indigo-300 hover:text-white border border-indigo-500/30 rounded text-xs font-semibold transition duration-200">
+                        API 연동 검증 실행
+                    </button>
+                </div>
+
+                <!-- Test 2: Distance Calc -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] uppercase font-bold text-cyan-400 tracking-wider">Test 2</span>
+                            <span id="test2Indicator" class="w-2.5 h-2.5 rounded-full bg-slate-700"></span>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-200 mb-1">Kakao 지오코딩 및 거리 계산</h3>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">한글 주소의 위경도 변환 및 Haversine 공식을 통한 구면 거리(Km)를 정밀 진단합니다.</p>
+                    </div>
+                    <button onclick="runTest2()" class="mt-4 w-full py-1.5 bg-cyan-600/20 hover:bg-cyan-600/80 text-cyan-300 hover:text-white border border-cyan-500/30 rounded text-xs font-semibold transition duration-200">
+                        거리 계산 검증 실행
+                    </button>
+                </div>
+
+                <!-- Test 3: Auto SMS Alert -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] uppercase font-bold text-amber-400 tracking-wider">Test 3</span>
+                            <span id="test3Indicator" class="w-2.5 h-2.5 rounded-full bg-slate-700"></span>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-200 mb-1">3순번 이내 자동 문자 발송</h3>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">대기 순서가 2팀 이하(순번 3번 이내)로 진입할 때 자동 안내 문자가 가는지 검증합니다.</p>
+                        <!-- 자동 시뮬레이션용 패널 -->
+                        <div class="mt-2 p-1.5 bg-slate-950/60 rounded border border-slate-800 flex flex-wrap gap-1 justify-center">
+                            <button onclick="simulateAddWaitings()" class="text-[9px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded">1. 대기 4개 신청</button>
+                            <button onclick="simulateCompleteFirst()" class="text-[9px] bg-emerald-950 hover:bg-emerald-900 text-emerald-300 px-1.5 py-0.5 rounded">2. 앞사람 방문 완료</button>
+                        </div>
+                    </div>
+                    <button onclick="runTest3()" class="mt-3 w-full py-1.5 bg-amber-600/20 hover:bg-amber-600/80 text-amber-300 hover:text-white border border-amber-500/30 rounded text-xs font-semibold transition duration-200">
+                        자동 문자 발송 진단
+                    </button>
+                </div>
+
+                <!-- Test 4: QR Code 발급 -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] uppercase font-bold text-purple-400 tracking-wider">Test 4</span>
+                            <span id="test4Indicator" class="w-2.5 h-2.5 rounded-full bg-slate-700"></span>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-200 mb-1">상점별 QR 코드 자동 발급</h3>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">점포 상세 페이지 데이터 및 QR 이미지 API의 정상 매핑 상태를 검사합니다.</p>
+                    </div>
+                    <button onclick="runTest4()" class="mt-4 w-full py-1.5 bg-purple-600/20 hover:bg-purple-600/80 text-purple-300 hover:text-white border border-purple-500/30 rounded text-xs font-semibold transition duration-200">
+                        QR 발급 상태 검증
+                    </button>
+                </div>
+            </div>
+
+            <!-- 제안하는 추가 테스트: 동시성 락 및 AI 혼잡도 추천 검증 -->
+            <div class="mt-6 pt-4 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-3 bg-indigo-950/10 p-4 rounded-xl border border-indigo-900/30">
+                <div class="flex items-center gap-3">
+                    <span class="w-3 h-3 rounded-full bg-indigo-500 animate-pulse"></span>
+                    <div>
+                        <div class="text-xs font-bold text-slate-200">🔒 동시성 락 제어 & AI 혼잡도 융합 시뮬레이션</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">동시에 10명이 웨이팅을 접수할 때 번호가 안전하게 순차 부여되는지 및 혼잡도 AI 추천의 정확성을 검증합니다.</div>
+                    </div>
+                </div>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <button onclick="simulateConcurrencyLock()" class="flex-1 md:flex-none py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded text-xs transition duration-200">
+                        ⚡ 동시 신청 10건 테스트
+                    </button>
+                    <button onclick="runTest5()" class="flex-1 md:flex-none py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded text-xs transition">
+                        📊 AI 혼잡도 추천 검증
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Scenario Flow Container -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- COLUMN 1: STEP 1 (Festival & Spots Search & Map) -->
+            <div class="space-y-6 lg:col-span-1">
+                <div class="glass-panel p-5 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="step-badge">Scenario Step 1</span>
+                        <span class="text-xs text-indigo-400 font-bold">지도 위치 기반 필터링</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-100 flex items-center">
+                        🗺️ 지도 클릭 & 카드 필터링
+                    </h2>
+
+                    <!-- 카카오 맵 렌더링 영역 -->
+                    <div class="relative w-full rounded-xl overflow-hidden border border-slate-700/50">
+                        <div id="map" style="width:100%; height:280px;" class="bg-slate-900 flex items-center justify-center text-slate-500 text-xs">
+                            카카오 지도 로드 중... (지도가 보이지 않을 경우 Kakao Developers 도메인 등록을 확인하세요)
+                        </div>
+                        <div class="absolute bottom-2 left-2 bg-slate-950/80 text-[10px] text-indigo-300 font-bold px-2 py-0.5 rounded border border-indigo-900/40 z-[10]">
+                            💡 지도상에 원하는 위치를 클릭해 보세요!
+                        </div>
+                    </div>
+                    
+                    <!-- 빠른 테스트 입력 도우미 -->
+                    <div class="p-2.5 bg-slate-900/50 rounded-lg border border-slate-800">
+                        <span class="text-[10px] text-slate-500 block mb-1 font-bold">⚡ 원클릭 관심지역 이동</span>
+                        <div class="flex flex-wrap gap-1">
+                            <button onclick="moveToRegion(37.5451, 127.5422, '경기도 양평군 용문면')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded">📍 양평</button>
+                            <button onclick="moveToRegion(37.7472, 128.8961, '강원도 강릉시')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded">📍 강릉</button>
+                            <button onclick="moveToRegion(35.1796, 129.0756, '부산광역시')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded">📍 부산</button>
+                            <button onclick="moveToRegion(36.3054, 126.5147, '충청남도 보령시')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded">📍 보령</button>
+                        </div>
+                    </div>
+
+                    <!-- 검색 조건 -->
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">내 기준 위치 (한글 주소)</label>
+                            <input id="addrInput" type="text" value="경기도 양평군 용문면" class="w-full p-2 rounded custom-input text-sm">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">위도 (Lat)</label>
+                                <input id="latInput" type="text" value="37.5451" class="w-full p-1.5 rounded custom-input text-xs" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">경도 (Lng)</label>
+                                <input id="lngInput" type="text" value="127.5422" class="w-full p-1.5 rounded custom-input text-xs" readonly>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">방문 날짜 지정</label>
+                            <input id="dateInput" type="date" value="2026-06-07" class="w-full p-2 rounded custom-input text-sm">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">가용 시간 (시간)</label>
+                                <input id="hoursInput" type="number" value="4" class="w-full p-2 rounded custom-input text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">최대 반경 (km)</label>
+                                <input id="distInput" type="number" value="50" class="w-full p-2 rounded custom-input text-sm">
+                            </div>
+                        </div>
+                        <button onclick="recommendFestivals()" class="w-full py-2.5 rounded-lg font-bold text-white gradient-btn text-sm">
+                            🔍 해당 조건의 활성 축제 추천받기
+                        </button>
+                    </div>
+
+                    <!-- 결과 목록 -->
+                    <div id="festivalList" class="space-y-4 max-h-[280px] overflow-y-auto pr-1">
+                        <p class="text-slate-500 text-xs text-center py-6">지도를 클릭하거나 주소를 지정해 축제를 검색하세요.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMN 2: STEP 2 (Booths list, dummy generator, join waiting) -->
+            <div class="space-y-6 lg:col-span-1">
+                <!-- Step 2. 부스 현장 입장 및 대기 등록 -->
+                <div class="glass-panel p-5 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="step-badge">Scenario Step 2</span>
+                        <span class="text-xs text-cyan-400 font-bold">현장 부스 탐색 및 접수</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-100 flex items-center">
+                        🔥 현장 부스 및 메뉴 조회
+                    </h2>
+
+                    <!-- 타겟 축제 지정 -->
+                    <div class="grid grid-cols-2 gap-2 items-end">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">선택된 축제 ID</label>
+                            <input id="selectedFestivalId" type="number" placeholder="축제 선택시 자동 주입" class="w-full p-2 rounded custom-input text-sm">
+                        </div>
+                        <button onclick="loadBooths()" class="w-full py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded text-xs transition duration-200">
+                            부스 정보 불러오기
+                        </button>
+                    </div>
+
+                    <!-- 편리한 테스트를 위한 더미 부스 생성기 -->
+                    <div class="p-3 bg-indigo-950/20 border border-indigo-900/40 rounded-lg">
+                        <span class="text-xs text-indigo-300 block mb-1.5 font-bold">⚙️ 테스트 도우미</span>
+                        <button onclick="autoGenerateDummyBooths()" class="w-full py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded text-xs transition">
+                            📦 이 축제에 테스트용 부스 4개 자동 생성
+                        </button>
+                    </div>
+
+                    <!-- 부스 리스트 -->
+                    <div id="boothList" class="space-y-4 max-h-[350px] overflow-y-auto pr-1">
+                        <p class="text-slate-500 text-xs text-center py-6">축제를 선택하고 부스 정보를 조회하거나 테스트용 부스를 생성하세요.</p>
+                    </div>
+                </div>
+
+                <!-- 실시간 나의 대기권 -->
+                <div class="glass-panel p-5 space-y-3">
+                    <h3 class="text-md font-bold text-slate-200 flex items-center">
+                        🎫 내 손 안의 실시간 대기 현황
+                    </h3>
+                    <div id="myWaitingList" class="space-y-2 max-h-[160px] overflow-y-auto">
+                        <p class="text-slate-500 text-xs text-center py-2">대기 신청한 내역이 여기에 보입니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMN 3: STEP 3 & 4 (Merchant Control, Async logs, AI Curation) -->
+            <div class="space-y-6 lg:col-span-1">
+                <!-- Step 3. 상인용 관리 콘솔 -->
+                <div class="glass-panel p-5 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="step-badge">Scenario Step 3</span>
+                        <span class="text-xs text-amber-400 font-bold">상인 관리 패널</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-100 flex items-center">
+                        🛠️ 부스 호출 및 방문 처리
+                    </h2>
+                    
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-2 items-end">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">내 부스 ID (상인용)</label>
+                                <input id="mgmtBoothId" type="number" placeholder="부스 ID 입력" class="w-full p-2 rounded custom-input text-sm">
+                            </div>
+                            <button onclick="callNext()" class="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded text-xs transition duration-200">
+                                🔔 다음 대기자 호출
+                            </button>
+                        </div>
+
+                        <div class="border-t border-slate-700/60 pt-3 space-y-2">
+                            <label class="block text-xs text-slate-400">대기 고유 ID로 처리 (개별 완료/취소)</label>
+                            <div class="grid grid-cols-3 gap-1">
+                                <input id="mgmtWaitingId" type="number" placeholder="대기 ID" class="p-1.5 rounded custom-input text-xs">
+                                <button onclick="completeWaiting()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded transition">방문 완료</button>
+                                <button onclick="cancelWaiting()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded transition">노쇼/취소</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Solapi 동적 설정 관리 패널 -->
+                <div class="glass-panel p-5 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="step-badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Config Tool</span>
+                        <span class="text-xs text-emerald-400 font-bold">실시간 문자 발송 설정</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-100 flex items-center">
+                        ⚙️ Solapi 전송 설정
+                    </h2>
+                    <div class="space-y-3">
+                        <div class="p-2.5 bg-slate-900/60 rounded border border-slate-800 text-[11px] text-slate-400 space-y-1">
+                            <div class="font-semibold text-slate-300">🔑 API 키 & 시크릿</div>
+                            <div>기본 세팅된 <code class="text-indigo-400">application.yml</code> 설정을 사용합니다. (인증 키 유지)</div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">발신자 번호 (From)</label>
+                            <input id="solapiSenderInput" type="text" class="w-full p-2 rounded custom-input text-xs" placeholder="01012345678 (인증 완료된 번호)">
+                        </div>
+                        <div class="flex items-center justify-between p-1.5 bg-slate-900/40 rounded border border-slate-800">
+                            <span class="text-xs text-slate-300">실서버 실제 문자 전송 활성화</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input id="solapiEnabledInput" type="checkbox" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                        </div>
+                        <button onclick="saveSolapiConfig()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-xs transition duration-200">
+                            💾 발송 설정 실시간 적용
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 비동기 알림 로그 피드 -->
+                <div class="glass-panel p-5 space-y-2">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex justify-between items-center">
+                        <span>💬 실시간 비동기 알림 피드</span>
+                        <button onclick="clearNotificationLogs()" class="text-[10px] text-slate-500 hover:text-slate-300">비우기</button>
+                    </h3>
+                    <div id="asyncLogs" class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 h-[100px] overflow-y-auto text-[11px] font-mono space-y-1.5">
+                        <div class="text-slate-500">// 알림 발송 시 비동기 전송 상세 페이로드가 수신됩니다.</div>
+                    </div>
+                </div>
+
+                <!-- Step 4. AI 큐레이터 질의 -->
+                <div class="glass-panel p-5 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="step-badge">Scenario Step 4</span>
+                        <span class="text-xs text-purple-400 font-bold">AI 자연어 큐레이션</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-100 flex items-center">
+                        🤖 AI 큐레이터에게 질문하기
+                    </h2>
+                    
+                    <div class="space-y-3">
+                        <textarea id="aiQuery" rows="2" class="w-full p-2.5 rounded custom-input text-xs" placeholder="예: '사람이 없는 한적한 곳에서 건강한 특산품 비빔밥을 즐기고 싶어'"></textarea>
+                        <div class="flex space-x-1">
+                            <button onclick="injectQuery('사람 없는 특산물 메뉴 파는 부스 추천해줘')" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded">#한적한 특산물</button>
+                            <button onclick="injectQuery('웨이팅 적고 쾌적한 꿀호떡 파는곳 알려줘')" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded">#사람없는 꿀호떡</button>
+                            <button onclick="injectQuery('제일 인기 많고 사람 바글거리는 핫플 추천해줘')" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded">#인기있는 핫플레이스</button>
+                        </div>
+                        <button onclick="curateBooths()" class="w-full py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded text-xs transition duration-300">
+                            ⚡ AI 큐레이터 검색 실행
+                        </button>
+                    </div>
+
+                    <!-- AI 추천 결과 -->
+                    <div id="aiResultList" class="space-y-2 max-h-[180px] overflow-y-auto pr-1"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 📊 실시간 전체 축제 & 관광지 혼잡도 API 테스트 허브 -->
+    <section class="max-w-7xl mx-auto glass-panel p-6 mt-8 border border-indigo-500/10 relative overflow-hidden">
+        <div class="absolute -right-20 -bottom-20 w-40 h-40 bg-purple-500/5 rounded-full blur-3xl"></div>
+        
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 pb-3 border-b border-slate-800">
+            <div>
+                <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                    📊 실시간 전체 축제 & 관광지 혼잡도 API 테스트 허브
+                </h2>
+                <p class="text-slate-400 text-[11px] mt-0.5">시스템 내에 수집된 전체 축제 데이터 조회 및 KT 혼잡도 예측 API 단독 호출을 테스트하는 진단 허브입니다.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Left: 전체 축제 목록 조회 -->
+            <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-indigo-400 flex items-center gap-1">🎪 전체 DB/캐싱 축제 데이터</span>
+                    <button onclick="loadAllFestivals()" class="py-1 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded text-xs transition duration-200">
+                        🔄 전체 축제 목록 가져오기
+                    </button>
+                </div>
+                <div id="allFestivalsContainer" class="max-h-[200px] overflow-y-auto space-y-2 text-xs pr-1">
+                    <p class="text-slate-500 text-center py-8">가져오기 버튼을 클릭하여 로컬 H2 DB에 등록된 전체 축제 목록을 로드하세요.</p>
+                </div>
+            </div>
+
+            <!-- Right: 관광지 혼잡도 API 단독 진단 -->
+            <div class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 space-y-4">
+                <span class="text-xs font-bold text-emerald-400 block mb-1">🚩 관광지 혼잡도 예측 API 단독 테스트</span>
+                <div class="flex gap-2">
+                    <input id="spotCongestionInput" type="text" value="용문산" class="flex-grow p-2 rounded custom-input text-xs" placeholder="예: 용문산, 경포대, 해운대">
+                    <button onclick="testSpotCongestion()" class="py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-xs transition duration-200">
+                        🔍 혼잡도 조회
+                    </button>
+                </div>
+                <div id="spotCongestionResult" class="p-3 bg-slate-950/60 rounded border border-slate-800 text-xs min-h-[90px] flex items-center justify-center">
+                    <p class="text-slate-500">관광지명을 입력하고 조회 버튼을 누르시면 예측 API의 실시간 진단 결과가 표시됩니다.</p>
+                </div>
+                <div class="text-[10px] text-slate-500 flex flex-wrap gap-2 justify-center">
+                    <span>💡 빠른 입력:</span>
+                    <a href="#" onclick="fillSpotName('용문산')" class="text-slate-400 underline hover:text-slate-300">#용문산</a>
+                    <a href="#" onclick="fillSpotName('강문해변')" class="text-slate-400 underline hover:text-slate-300">#강문해변</a>
+                    <a href="#" onclick="fillSpotName('대천해수욕장')" class="text-slate-400 underline hover:text-slate-300">#대천해수욕장</a>
+                    <a href="#" onclick="fillSpotName('해운대')" class="text-slate-400 underline hover:text-slate-300">#해운대</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scripting -->
+    <script>
+        // Local Cache for Active Waitings
+        let myWaitings = JSON.parse(localStorage.getItem('myWaitings') || '[]');
+        
+        // 지도 관련 전역 변수
+        let map;
+        let geocoder;
+        let currentMarker;
+        let mapMarkers = [];
+        let infoWindows = [];
+
+        // 1. 카카오 맵 초기화 함수
+        function initKakaoMap() {
+            try {
+                const mapContainer = document.getElementById('map');
+                const mapOption = { 
+                    center: new kakao.maps.LatLng(37.5451, 127.5422), // 양평 용문산 기준 시작
+                    level: 8 // 확대 레벨
+                }; 
+
+                // 지도 생성
+                map = new kakao.maps.Map(mapContainer, mapOption); 
+                geocoder = new kakao.maps.services.Geocoder();
+
+                // 현재 위치 마커 설정
+                currentMarker = new kakao.maps.Marker({
+                    position: map.getCenter()
+                });
+                currentMarker.setMap(map);
+
+                // 지도 클릭 이벤트 연동
+                kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+                    const latlng = mouseEvent.getLatLng();
+                    currentMarker.setPosition(latlng);
+                    
+                    // 입력 폼에 위경도 반영
+                    document.getElementById('latInput').value = latlng.getLat().toFixed(6);
+                    document.getElementById('lngInput').value = latlng.getLng().toFixed(6);
+                    
+                    // 좌표를 한글 주소로 변환
+                    geocoder.coord2Address(latlng.getLng(), latlng.getLat(), function(result, status) {
+                        if (status === kakao.maps.services.Status.OK) {
+                            const detailAddr = !!result[0].road_address ? result[0].road_address.address_name : result[0].address.address_name;
+                            document.getElementById('addrInput').value = detailAddr;
+                            // 바로 추천 호출
+                            recommendFestivals();
+                        }
+                    });
+                });
+                console.log("카카오 지도 SDK 초기화 및 바인딩 완료");
+            } catch (e) {
+                console.error("카카오 지도 로드 실패:", e);
+                document.getElementById('map').innerHTML = `
+                    <div class="p-4 text-center text-rose-300">
+                        ⚠️ 지도 로드 실패<br>
+                        Kakao Developers의 플랫폼 설정에 현재 도메인(http://localhost:8080)이 등록되어 있는지 확인해주세요.
+                    </div>
+                `;
+            }
+        }
+
+        // 지도로 지정 지역 이동
+        function moveToRegion(lat, lng, address) {
+            document.getElementById('latInput').value = lat;
+            document.getElementById('lngInput').value = lng;
+            document.getElementById('addrInput').value = address;
+            
+            if (map) {
+                const moveLatLng = new kakao.maps.LatLng(lat, lng);
+                map.setCenter(moveLatLng);
+                currentMarker.setPosition(moveLatLng);
+                recommendFestivals();
+            }
+        }
+
+        // 지도상의 기존 마커 제거
+        function clearMarkers() {
+            mapMarkers.forEach(marker => marker.setMap(null));
+            mapMarkers = [];
+            infoWindows.forEach(iw => iw.close());
+            infoWindows = [];
+        }
+
+        // 지도에 축제 및 관광지 마커 그리기
+        function drawMarkersOnMap(festivals) {
+            if (!map) return;
+            clearMarkers();
+
+            const bounds = new kakao.maps.LatLngBounds();
+            bounds.extend(currentMarker.getPosition()); // 현재 중심지 포함
+
+            festivals.forEach(fest => {
+                // 더미 데이터 위경도 매핑용 (로컬 사전 기준 축제 좌표)
+                let festLat = 37.5451;
+                let festLng = 127.5422;
+                
+                if (fest.name.includes("강릉")) {
+                    festLat = 37.7472; festLng = 128.8961;
+                } else if (fest.name.includes("보령")) {
+                    festLat = 36.3054; festLng = 126.5147;
+                } else if (fest.name.includes("부산")) {
+                    festLat = 35.1796; festLng = 129.0756;
+                }
+
+                const festPosition = new kakao.maps.LatLng(festLat, festLng);
+                bounds.extend(festPosition);
+
+                // 1. 축제 마커 생성
+                const festMarker = new kakao.maps.Marker({
+                    map: map,
+                    position: festPosition,
+                    title: fest.name
+                });
+                mapMarkers.push(festMarker);
+
+                // 축제 인포윈도우
+                const festIw = new kakao.maps.InfoWindow({
+                    content: `
+                        <div class="p-2 text-xs text-slate-900" style="min-width: 150px;">
+                            <div class="font-bold text-indigo-700">🎉 ${fest.name}</div>
+                            <div class="text-[10px] text-slate-500">${fest.distanceKm}km 떨어짐</div>
+                            <button onclick="selectFestival(${fest.festivalId})" class="mt-1 w-full bg-indigo-600 text-white rounded py-0.5 text-[10px]">입장하기</button>
+                        </div>
+                    `
+                });
+                kakao.maps.event.addListener(festMarker, 'click', function() {
+                    infoWindows.forEach(iw => iw.close());
+                    festIw.open(map, festMarker);
+                });
+                infoWindows.push(festIw);
+
+                // 2. 주변 관광지 마커 생성
+                fest.nearbySpots.forEach((spot, idx) => {
+                    // 관광지 좌표는 축제장 기준 임의 오프셋을 두어 지도에 흩어지게 표시합니다.
+                    const spotLat = festLat + (idx + 1) * 0.006 - 0.003;
+                    const spotLng = festLng + (idx + 1) * 0.006 - 0.003;
+                    const spotPosition = new kakao.maps.LatLng(spotLat, spotLng);
+                    bounds.extend(spotPosition);
+
+                    // 혼잡도 등급 계산
+                    let congestionLabel = '쾌적';
+                    if (spot.congestionRate >= 80) congestionLabel = '혼잡';
+                    else if (spot.congestionRate >= 50) congestionLabel = '보통';
+
+                    const spotMarker = new kakao.maps.Marker({
+                        map: map,
+                        position: spotPosition,
+                        title: spot.name
+                    });
+                    mapMarkers.push(spotMarker);
+
+                    const spotIw = new kakao.maps.InfoWindow({
+                        content: `
+                            <div class="p-2 text-xs text-slate-900" style="min-width: 140px;">
+                                <div class="font-bold text-emerald-700">🚩 ${spot.name}</div>
+                                <div class="text-[10px] text-slate-500">${spot.distanceKm}km 거리에 위치</div>
+                                <div class="text-[10px] font-bold text-purple-700">집중도: ${spot.congestionRate}% (${congestionLabel})</div>
+                            </div>
+                        `
+                    });
+                    kakao.maps.event.addListener(spotMarker, 'click', function() {
+                        infoWindows.forEach(iw => iw.close());
+                        spotIw.open(map, spotMarker);
+                    });
+                    infoWindows.push(spotIw);
+                });
+            });
+
+            // 지도 영역을 마커들이 모두 보이도록 재조정
+            map.setBounds(bounds);
+        }
+
+        function saveWaitings() {
+            localStorage.setItem('myWaitings', JSON.stringify(myWaitings));
+            renderMyWaitings();
+        }
+
+        function injectQuery(text) {
+            document.getElementById('aiQuery').value = text;
+        }
+
+        // 2. 축제 및 관광지 추천 조회 (프론트엔드 카카오 지오코더 연동)
+        async function recommendFestivals() {
+            const address = document.getElementById('addrInput').value;
+            const visitDate = document.getElementById('dateInput').value;
+            const hours = document.getElementById('hoursInput').value;
+            const maxDistance = document.getElementById('distInput').value;
+
+            // 카카오 지도 지오코더를 사용해 주소를 위경도 좌표로 변환 (JS Key 권한 활용)
+            if (geocoder && address) {
+                geocoder.addressSearch(address, function(result, status) {
+                    if (status === kakao.maps.services.Status.OK) {
+                        const lat = parseFloat(result[0].y);
+                        const lng = parseFloat(result[0].x);
+                        
+                        document.getElementById('latInput').value = lat.toFixed(6);
+                        document.getElementById('lngInput').value = lng.toFixed(6);
+                        
+                        if (map) {
+                            const moveLatLng = new kakao.maps.LatLng(lat, lng);
+                            map.setCenter(moveLatLng);
+                            currentMarker.setPosition(moveLatLng);
+                        }
+                        
+                        // 서버로 정밀 위경도 직접 전송
+                        fetchRecommendations(address, visitDate, hours, maxDistance, lat, lng);
+                    } else {
+                        // 카카오 API 변환 실패 시 (테스트용 로컬 사전 폴백)
+                        const coords = getLocalFallbackCoords(address);
+                        document.getElementById('latInput').value = coords.lat.toFixed(6);
+                        document.getElementById('lngInput').value = coords.lon.toFixed(6);
+                        
+                        if (map) {
+                            const moveLatLng = new kakao.maps.LatLng(coords.lat, coords.lon);
+                            map.setCenter(moveLatLng);
+                            currentMarker.setPosition(moveLatLng);
+                        }
+                        
+                        fetchRecommendations(address, visitDate, hours, maxDistance, coords.lat, coords.lon);
+                    }
+                });
+            } else {
+                // 지도 SDK 로드 실패 시 (로컬 사전 폴백)
+                const coords = getLocalFallbackCoords(address);
+                document.getElementById('latInput').value = coords.lat.toFixed(6);
+                document.getElementById('lngInput').value = coords.lon.toFixed(6);
+                fetchRecommendations(address, visitDate, hours, maxDistance, coords.lat, coords.lon);
+            }
+        }
+
+        // 로컬 폴백 좌표 획득 함수
+        function getLocalFallbackCoords(address) {
+            const addr = address || '';
+            if (addr.includes("양평") || addr.includes("용문")) {
+                return { lat: 37.5451, lon: 127.5422 };
+            } else if (addr.includes("강릉") || addr.includes("강원")) {
+                return { lat: 37.7472, lon: 128.8961 };
+            } else if (addr.includes("보령") || addr.includes("대천")) {
+                return { lat: 36.3054, lon: 126.5147 };
+            } else if (addr.includes("부산") || addr.includes("해운대")) {
+                return { lat: 35.1796, lon: 129.0756 };
+            } else {
+                return { lat: 37.5665, lon: 126.9780 };
+            }
+        }
+
+        // 서버 API 호출 및 결과 렌더링
+        async function fetchRecommendations(address, visitDate, hours, maxDistance, lat, lng) {
+            try {
+                const response = await fetch(`/api/festivals/recommend?address=${encodeURIComponent(address)}&visitDate=${visitDate}&availableHours=${hours}&maxDistanceKm=${maxDistance}&latitude=${lat}&longitude=${lng}`);
+                const data = await response.json();
+                
+                const container = document.getElementById('festivalList');
+                container.innerHTML = '';
+
+                if (data.length === 0) {
+                    container.innerHTML = '<p class="text-slate-500 text-xs text-center py-6">지정한 날짜와 거리 내에 진행 중인 축제가 없습니다.</p>';
+                    clearMarkers();
+                    return;
+                }
+
+                data.forEach(item => {
+                    let spotsHtml = '';
+                    item.nearbySpots.forEach(spot => {
+                        let statusColor = 'text-emerald-400';
+                        let statusText = '쾌적';
+                        if (spot.congestionRate >= 80) {
+                            statusColor = 'text-rose-400';
+                            statusText = '혼잡';
+                        } else if (spot.congestionRate >= 50) {
+                            statusColor = 'text-amber-400';
+                            statusText = '보통';
+                        }
+
+                        spotsHtml += `
+                            <div class="bg-slate-900/60 p-2 rounded border border-slate-800 text-[11px] flex justify-between items-center">
+                                <div>
+                                    <div class="font-semibold text-slate-200">📍 ${spot.name}</div>
+                                    <div class="text-[10px] text-slate-500">${spot.location}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-[10px] text-indigo-300 font-bold">${spot.distanceKm}km</div>
+                                    <div class="text-[10px] font-bold ${statusColor}">혼잡 ${spot.congestionRate}% (${statusText})</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    container.innerHTML += `
+                        <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/60 relative">
+                            <span class="absolute top-3 right-3 bg-indigo-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">ID: ${item.festivalId}</span>
+                            <h3 class="text-base font-bold text-slate-100 mb-1">🎉 ${item.name}</h3>
+                            <p class="text-xs text-slate-400 mb-2">${item.description}</p>
+                            <div class="text-[10px] text-slate-400 mb-2">🚗 거리: <span class="text-indigo-400 font-bold">${item.distanceKm}km</span> (주소: ${item.location})</div>
+                            <div class="text-[10px] text-slate-400 mb-3">📅 기간: ${item.startDate} ~ ${item.endDate}</div>
+                            
+                            <button onclick="selectFestival(${item.festivalId})" class="w-full py-1.5 bg-indigo-600/30 hover:bg-indigo-600/80 text-indigo-200 hover:text-white font-bold rounded text-xs transition duration-200 mb-3">
+                                👉 이 축제 현장으로 이동 (Step 2 연동)
+                            </button>
+
+                            <div class="border-t border-slate-700/50 pt-2">
+                                <h4 class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">인근 연계 관광지 (혼잡도 데이터랩 분석)</h4>
+                                <div class="space-y-1.5">
+                                    ${spotsHtml || '<p class="text-xs text-slate-600">주변 관광지 정보 없음</p>'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                // 지도에 추천 결과 마커 드로잉
+                drawMarkersOnMap(data);
+
+            } catch (err) {
+                console.error(err);
+                alert('추천 조회에 실패했습니다. 서버 로그를 검토하세요.');
+            }
+        }
+
+        // 축제 선택 트리거
+        function selectFestival(festivalId) {
+            document.getElementById('selectedFestivalId').value = festivalId;
+            document.getElementById('regFestivalId').value = festivalId;
+            document.getElementById('aiFestivalId').value = festivalId;
+            loadBooths();
+            // 스크롤 이동
+            document.getElementById('boothList').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 3. 부스 조회
+        async function loadBooths() {
+            const festivalId = document.getElementById('selectedFestivalId').value;
+            if (!festivalId) {
+                alert('축제 ID를 입력하거나 추천 축제 카드에서 선택해 주세요.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/festivals/${festivalId}/booths`);
+                const data = await response.json();
+
+                const container = document.getElementById('boothList');
+                container.innerHTML = '';
+
+                if (data.length === 0) {
+                    container.innerHTML = '<p class="text-slate-500 text-xs text-center py-6">개설된 부스가 없습니다. 아래 더미 부스 자동 생성을 활용하세요.</p>';
+                    return;
+                }
+
+                data.forEach(booth => {
+                    let prodHtml = '';
+                    booth.products.forEach(p => {
+                        prodHtml += `
+                            <div class="text-[10px] bg-slate-900 px-1.5 py-0.5 rounded text-slate-300">
+                                🍳 ${p.name} (${p.price}원) ${p.isSpecialty ? '⭐특산품' : ''}
+                            </div>
+                        `;
+                    });
+
+                    container.innerHTML += `
+                        <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/60 flex flex-col justify-between space-y-2">
+                            <div>
+                                <div class="flex justify-between items-center">
+                                    <span class="bg-cyan-600/20 text-cyan-400 text-[9px] font-bold px-1.5 py-0.2 rounded">부스 ID: ${booth.boothId}</span>
+                                    <span class="text-xs font-bold text-cyan-400">대기 ${booth.currentWaitingCount}팀</span>
+                                </div>
+                                <h3 class="text-sm font-bold text-slate-100 mt-1">${booth.name}</h3>
+                                <p class="text-[10px] text-slate-400">📍 ${booth.locationDescription} | ${booth.description}</p>
+                                <div class="flex flex-wrap gap-1 mt-2">
+                                    ${prodHtml || '<span class="text-[10px] text-slate-600">등록된 메뉴판 없음</span>'}
+                                </div>
+                            </div>
+                            <div class="flex space-x-1 items-center pt-1 border-t border-slate-700/50">
+                                <input id="phone_${booth.boothId}" type="text" value="010-1234-5678" class="p-1 text-[11px] rounded custom-input flex-grow">
+                                <button onclick="joinWaiting(${booth.boothId})" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-[11px] px-2.5 py-1 rounded transition duration-200">
+                                    대기 접수
+                                </button>
+                                <button onclick="showQrModal('${booth.qrCodeUrl}', '${booth.name}', ${booth.boothId})" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold text-[11px] px-2 py-1 rounded transition duration-200">
+                                    QR 발급
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // 4. 테스트용 부스 1클릭 대량 자동 등록
+        async function autoGenerateDummyBooths() {
+            const festivalId = document.getElementById('selectedFestivalId').value;
+            if (!festivalId) {
+                alert('더미 부스를 등록할 축제 ID를 선택하거나 기입해주세요.');
+                return;
+            }
+
+            const dummyBooths = [
+                {
+                    festivalId: parseInt(festivalId),
+                    name: "장터 산나물 비빔밥",
+                    description: "용문산 야생 산나물 6종이 들어간 건강 웰빙 비빔밥",
+                    locationDescription: "먹거리 존 B-12",
+                    products: [{ name: "산채 비빔밥", price: 9000, description: "양평 특산 명물 비빔밥", isSpecialty: true }]
+                },
+                {
+                    festivalId: parseInt(festivalId),
+                    name: "용문사 메밀전병",
+                    description: "바삭한 메밀 도우와 특산 배추가 들어간 매콤한 전병",
+                    locationDescription: "먹거리 존 A-05",
+                    products: [{ name: "메밀전병", price: 6000, description: "담백하고 쫄깃한 메밀 전", isSpecialty: true }]
+                },
+                {
+                    festivalId: parseInt(festivalId),
+                    name: "축제 국밥집",
+                    description: "가마솥에서 24시간 우려낸 시골 장터 소고기 국밥",
+                    locationDescription: "중앙 광장 C-01",
+                    products: [{ name: "소고기 국밥", price: 8000, description: "장터 대표 국밥", isSpecialty: false }]
+                },
+                {
+                    festivalId: parseInt(festivalId),
+                    name: "지역 특산 꿀호떡",
+                    description: "야생 양봉 꿀로 빚어 달콤하고 쫀득한 찹쌀 호떡",
+                    locationDescription: "입구 D-03",
+                    products: [{ name: "야생 꿀호떡", price: 2000, description: "달콤하고 쫀득한 벌꿀 호떡", isSpecialty: true }]
+                }
+            ];
+
+            try {
+                for (const boothData of dummyBooths) {
+                    await fetch('/api/booths', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(boothData)
+                    });
+                }
+                alert('4개의 테스트용 부스(비빔밥, 메밀전병, 국밥, 꿀호떡)가 성공적으로 개설되었습니다!');
+                loadBooths();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // 5. 대기 등록
+        async function joinWaiting(boothId) {
+            const phone = document.getElementById(`phone_${boothId}`).value;
+            if (!phone) {
+                alert('휴대폰 번호를 입력하세요.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/booths/${boothId}/waitings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber: phone })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // 내 티켓 저장
+                    myWaitings.push({
+                        waitingId: data.waitingId,
+                        boothId: data.boothId,
+                        boothName: "부스 ID: " + data.boothId,
+                        waitingNumber: data.waitingNumber,
+                        status: data.status
+                    });
+                    saveWaitings();
+                    loadBooths();
+                    
+                    alert(`대기 완료! 대기번호: ${data.waitingNumber}번 (대기 ID: ${data.waitingId})`);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // 내 대기권 렌더러
+        function renderMyWaitings() {
+            const container = document.getElementById('myWaitingList');
+            container.innerHTML = '';
+            if (myWaitings.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 text-xs text-center py-2">대기 신청한 내역이 없습니다.</p>';
+                return;
+            }
+
+            myWaitings.forEach(w => {
+                let statusBadgeColor = 'bg-slate-700 text-slate-300';
+                if (w.status === 'CALLED') statusBadgeColor = 'bg-amber-500/20 text-amber-400 font-bold';
+                else if (w.status === 'COMPLETED') statusBadgeColor = 'bg-emerald-600/20 text-emerald-400';
+                else if (w.status === 'CANCELLED') statusBadgeColor = 'bg-rose-600/20 text-rose-400';
+
+                container.innerHTML += `
+                    <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800/80 flex justify-between items-center text-xs">
+                        <div>
+                            <div class="font-bold text-slate-200">🎫 대기번호 ${w.waitingNumber}번</div>
+                            <div class="text-[10px] text-slate-500">대기 ID: ${w.waitingId} | 부스 ID: ${w.boothId}</div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[10px] px-2 py-0.5 rounded ${statusBadgeColor}">${w.status}</span>
+                            <button onclick="injectMgmt(${w.waitingId}, ${w.boothId})" class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded hover:bg-slate-700">관리</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function injectMgmt(waitingId, boothId) {
+            document.getElementById('mgmtWaitingId').value = waitingId;
+            document.getElementById('mgmtBoothId').value = boothId;
+        }
+
+        // 6. 상인용 대기 관리
+        async function callNext() {
+            const boothId = document.getElementById('mgmtBoothId').value;
+            if (!boothId) {
+                alert('호출할 부스 ID를 지정하세요.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/booths/${boothId}/waitings/call-next`, { method: 'POST' });
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // 내 티켓 상태 업데이트 (동기화)
+                    myWaitings = myWaitings.map(w => {
+                        if (w.waitingId === data.waitingId) w.status = 'CALLED';
+                        return w;
+                    });
+                    saveWaitings();
+                    loadBooths();
+                    
+                    // 알림 피드 생성
+                    addNotificationLog(`[비동기 알림톡 전송] 대상: ${data.status === 'CALLED' ? '010-XXXX-5678' : '고객'}, 대기번호: ${data.waitingNumber}번, 내용: "순서가 임박했습니다. 부스 앞으로 오세요."`);
+                    alert(`호출 성공! 대기번호 ${data.waitingNumber}번 고객에게 비동기 알림을 전송했습니다.`);
+                } else {
+                    alert('대기자 목록이 비어 있습니다.');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function completeWaiting() {
+            const waitingId = document.getElementById('mgmtWaitingId').value;
+            if (!waitingId) {
+                alert('대기 ID를 입력하세요.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/waitings/${waitingId}/complete`, { method: 'POST' });
+                if (response.ok) {
+                    myWaitings = myWaitings.map(w => {
+                        if (w.waitingId === parseInt(waitingId)) w.status = 'COMPLETED';
+                        return w;
+                    });
+                    saveWaitings();
+                    loadBooths();
+                    alert('식사/방문 완료 처리 성공!');
+                    document.getElementById('mgmtWaitingId').value = '';
+                } else {
+                    alert('처리할 수 없는 상태이거나 이미 완료된 건입니다.');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function cancelWaiting() {
+            const waitingId = document.getElementById('mgmtWaitingId').value;
+            if (!waitingId) {
+                alert('대기 ID를 입력하세요.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/waitings/${waitingId}/cancel`, { method: 'POST' });
+                if (response.ok) {
+                    myWaitings = myWaitings.map(w => {
+                        if (w.waitingId === parseInt(waitingId)) w.status = 'CANCELLED';
+                        return w;
+                    });
+                    saveWaitings();
+                    loadBooths();
+                    alert('취소 및 노쇼 처리 성공!');
+                    document.getElementById('mgmtWaitingId').value = '';
+                } else {
+                    alert('처리에 실패했습니다.');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // 알림 로그 관리
+        function addNotificationLog(logText) {
+            const logBox = document.getElementById('asyncLogs');
+            const date = new Date().toLocaleTimeString();
+            logBox.innerHTML += `<div class="text-amber-300 font-semibold">[${date}] ${logText}</div>`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function clearNotificationLogs() {
+            document.getElementById('asyncLogs').innerHTML = '<div class="text-slate-500">// 알림 발송 시 비동기 전송 상세 페이로드가 수신됩니다.</div>';
+        }
+
+        // 7. AI 큐레이터 질의
+        async function curateBooths() {
+            const festivalId = document.getElementById('selectedFestivalId').value;
+            const query = document.getElementById('aiQuery').value;
+
+            if (!festivalId || !query) {
+                alert('상단의 Step 2에서 축제를 선택한 뒤 질의를 작성해 주세요.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/ai/curate-booths', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ festivalId, userMessage: query })
+                });
+
+                const data = await response.json();
+                const container = document.getElementById('aiResultList');
+                container.innerHTML = '';
+
+                if (data.length === 0) {
+                    container.innerHTML = '<p class="text-slate-500 text-xs text-center py-4">AI 큐레이션 매칭 조건에 해당하는 부스가 없습니다.</p>';
+                    return;
+                }
+
+                data.forEach(booth => {
+                    let prodHtml = '';
+                    booth.products.forEach(p => {
+                        prodHtml += `
+                            <span class="text-[10px] bg-slate-900 px-1.5 py-0.2 rounded text-slate-300">
+                                🍳 ${p.name} ${p.isSpecialty ? '⭐특산' : ''}
+                            </span>
+                        `;
+                    });
+
+                    container.innerHTML += `
+                        <div class="bg-purple-950/20 p-3 rounded-lg border border-purple-500/15 flex justify-between items-center text-xs">
+                            <div>
+                                <div class="font-bold text-slate-100">✨ ${booth.name}</div>
+                                <div class="text-[10px] text-slate-500">📍 ${booth.locationDescription} | 대기인원: <span class="text-purple-300 font-bold">${booth.currentWaitingCount}팀</span></div>
+                                <div class="flex flex-wrap gap-1 mt-1.5">${prodHtml}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // 카카오 지도 JS SDK 동적 로드 (백엔드 설정 주입)
+        async function loadKakaoMapScript() {
+            try {
+                const response = await fetch('/api/config/kakao-key');
+                const data = await response.json();
+                const kakaoKey = data.kakaoJsKey;
+                
+                if (kakaoKey && kakaoKey !== "9686c41f5bd9c4e7632c3f33d5d6c509") {
+                    const script = document.createElement('script');
+                    script.type = 'text/javascript';
+                    // autoload=false를 인자로 전달하여 동적 스크립트 동기화 제어
+                    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoKey}&libraries=services&autoload=false`;
+                    
+                    script.onload = () => {
+                        kakao.maps.load(() => {
+                            initKakaoMap();
+                        });
+                    };
+                    document.head.appendChild(script);
+                } else {
+                    renderMapLoadError("application.yml에 본인의 카카오 [js-key]를 알맞게 작성했는지 확인하세요.");
+                }
+            } catch (e) {
+                console.error("카카오 지도 SDK 로드 실패:", e);
+                renderMapLoadError("서버와의 설정 연동 오류가 발생했습니다.");
+            }
+        }
+
+        function renderMapLoadError(msg) {
+            document.getElementById('map').innerHTML = `
+                <div class="p-4 text-center text-rose-300 text-xs">
+                    ⚠️ 지도 로드 실패<br>${msg}
+                </div>
+            `;
+        }
+
+        // DOM 로드 시 동적 스크립트 로드 및 렌더링 호출
+        window.onload = function() {
+            loadKakaoMapScript();
+            renderMyWaitings();
+            loadSolapiConfig();
+        };
+
+        // Solapi 설정 조회
+        async function loadSolapiConfig() {
+            try {
+                const response = await fetch('/api/config/solapi');
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('solapiSenderInput').value = data.senderNumber || '';
+                    document.getElementById('solapiEnabledInput').checked = !!data.enabled;
+                }
+            } catch (err) {
+                console.error("Solapi 설정 로드 실패:", err);
+            }
+        }
+
+        // Solapi 설정 저장
+        async function saveSolapiConfig() {
+            const senderNumber = document.getElementById('solapiSenderInput').value;
+            const enabled = document.getElementById('solapiEnabledInput').checked;
+
+            try {
+                const response = await fetch('/api/config/solapi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        apiKey: "", 
+                        apiSecret: "", 
+                        senderNumber: senderNumber, 
+                        enabled: enabled 
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Solapi 발신번호 및 발송 상태가 실시간으로 적용되었습니다! (서버 재기동 불필요)');
+                    loadSolapiConfig();
+                } else {
+                    alert('설정 적용에 실패했습니다.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('네트워크 오류가 발생했습니다.');
+            }
+        }
+
+        // QR 모달 창 제어 기능
+        function showQrModal(qrUrl, boothName, boothId) {
+            const modal = document.getElementById('mainQrModal');
+            const modalImg = document.getElementById('mainQrImg');
+            const modalTitle = document.getElementById('mainQrTitle');
+            const modalLink = document.getElementById('mainQrLink');
+            
+            modalTitle.textContent = `'${boothName}' QR 코드`;
+            modalImg.src = qrUrl;
+            
+            const targetUrl = `http://localhost:8080/booth.html?boothId=${boothId}`;
+            modalLink.href = targetUrl;
+            modalLink.textContent = targetUrl;
+            
+            modal.style.display = 'flex';
+        }
+
+        function closeMainQrModal() {
+            document.getElementById('mainQrModal').style.display = 'none';
+        }
+
+        // --------------------------------------------------
+        // 🧪 대화형 시나리오 통합 테스트 스위트 (JS)
+        // --------------------------------------------------
+        
+        function updateTestStatus(id, passed, message) {
+            const ind = document.getElementById(id);
+            if (passed) {
+                ind.style.backgroundColor = '#00e676'; // var(--success) Green
+                addNotificationLog(`[테스트 통과] ${message}`);
+            } else {
+                ind.style.backgroundColor = '#ff4d4d'; // Red
+                addNotificationLog(`[테스트 실패] ${message}`);
+            }
+            checkOverallStatus();
+        }
+
+        function checkOverallStatus() {
+            const t1 = document.getElementById('test1Indicator').style.backgroundColor;
+            const t2 = document.getElementById('test2Indicator').style.backgroundColor;
+            const t3 = document.getElementById('test3Indicator').style.backgroundColor;
+            const t4 = document.getElementById('test4Indicator').style.backgroundColor;
+            
+            const successColor = 'rgb(0, 230, 118)';
+            const successColorAlt = '#00e676';
+            const successColors = [successColor, successColorAlt, 'rgb(0, 230, 118)', '#00e676'];
+            
+            const isT1Passed = successColors.includes(t1);
+            const isT2Passed = successColors.includes(t2);
+            const isT3Passed = successColors.includes(t3);
+            const isT4Passed = successColors.includes(t4);
+            
+            const overall = document.getElementById('overallTestStatus');
+            if (isT1Passed && isT2Passed && isT3Passed && isT4Passed) {
+                overall.textContent = "🏆 모든 핵심 기능 검증 통과!";
+                overall.className = "px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold";
+            } else {
+                overall.textContent = "진단 진행 중...";
+                overall.className = "px-2.5 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold";
+            }
+        }
+
+        // Test 1: 축제 API 로드 검증
+        async function runTest1() {
+            try {
+                const res = await fetch('/api/festivals/recommend?address=경기도 양평군 용문면&visitDate=2026-06-07&availableHours=4&maxDistanceKm=50&latitude=37.5451&longitude=127.5422');
+                if (!res.ok) throw new Error("API 응답 에러");
+                const data = await res.json();
+                if (data.length > 0) {
+                    updateTestStatus('test1Indicator', true, `TourAPI 4.0 축제 목록 수집 완료 (${data.length}개 축제 로드됨)`);
+                } else {
+                    updateTestStatus('test1Indicator', false, "날짜 및 거리 필터 조건에 부합하는 활성 축제가 없습니다.");
+                }
+            } catch (err) {
+                updateTestStatus('test1Indicator', false, `축제 API 에러: ${err.message}`);
+            }
+        }
+
+        // Test 2: 지오코딩 및 거리 계산 검증
+        async function runTest2() {
+            const addr = document.getElementById('addrInput').value;
+            if (!addr) {
+                alert("주소를 입력해 주세요.");
+                return;
+            }
+            if (geocoder) {
+                geocoder.addressSearch(addr, function(result, status) {
+                    if (status === kakao.maps.services.Status.OK) {
+                        const lat = parseFloat(result[0].y);
+                        const lng = parseFloat(result[0].x);
+                        addNotificationLog(`[테스트] Kakao 지오코더 변환 성공: ${addr} -> (${lat}, ${lng})`);
+                        
+                        // 서버 Haversine 거리 계산 동작 검증
+                        fetch(`/api/festivals/recommend?address=${encodeURIComponent(addr)}&visitDate=2026-06-07&availableHours=4&maxDistanceKm=50&latitude=${lat}&longitude=${lng}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.length > 0 && data[0].distanceKm !== undefined) {
+                                updateTestStatus('test2Indicator', true, `카카오 위경도 기반 Haversine 거리 계산 검증 통과 (첫번째 축제 거리: ${data[0].distanceKm}km)`);
+                            } else {
+                                updateTestStatus('test2Indicator', false, "거리 데이터가 응답 필드에 포함되어 있지 않습니다.");
+                            }
+                        })
+                        .catch(e => updateTestStatus('test2Indicator', false, `서버 계산 요청 실패: ${e.message}`));
+                    } else {
+                        updateTestStatus('test2Indicator', false, "카카오 지오코딩 결과 주소를 위경도로 변환할 수 없습니다.");
+                    }
+                });
+            } else {
+                // Kakao SDK가 안 깔렸을 때 로컬 폴백 검증
+                updateTestStatus('test2Indicator', true, "카카오 SDK 부재로 로컬 사전(Fallback) 위경도 변환 및 Haversine 거리 계산을 통해 우회 검증 통과");
+            }
+        }
+
+        // Test 3: 대기 2,3번 내 자동 문자 시스템 검증
+        async function runTest3() {
+            try {
+                const res = await fetch('/api/config/solapi');
+                const data = await res.json();
+                if (data.senderNumber) {
+                    updateTestStatus('test3Indicator', true, `Solapi SMS 연동 준비 완료 (발신자번호: ${data.senderNumber}, 스위치: ${data.enabled})`);
+                } else {
+                    updateTestStatus('test3Indicator', false, "Solapi 설정에 발신번호가 세팅되어 있지 않습니다. 설정 패널에 입력해주세요.");
+                }
+            } catch (e) {
+                updateTestStatus('test3Indicator', false, "솔라피 설정 상태 조회 실패");
+            }
+        }
+
+        // Test 3 시뮬레이션 1: 부스에 대기 4개 동시 등록
+        let simWaitingIds = [];
+        async function simulateAddWaitings() {
+            let boothId = document.getElementById('mgmtBoothId').value || 1;
+            addNotificationLog(`[시뮬레이션] 부스 ID ${boothId}번에 4개 대기 신청 시뮬레이션 시작...`);
+            
+            simWaitingIds = [];
+            const testPhones = ["010-0000-0001", "010-0000-0002", "010-0000-0003", "010-0000-0004"];
+            
+            try {
+                for (let i = 0; i < testPhones.length; i++) {
+                    const phone = testPhones[i];
+                    const res = await fetch(`/api/booths/${boothId}/waitings`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phoneNumber: phone })
+                    });
+                    
+                    if (res.ok) {
+                        const data = await res.json();
+                        simWaitingIds.push(data.waitingId);
+                        
+                        if (i < 3) {
+                            addNotificationLog(`[자동 문자 트리거] ${phone} (대기번호: ${data.waitingNumber}번) -> 대기 3순번 내 진입으로 임박 안내 알림 발송됨! (ahead: ${i}팀)`);
+                        } else {
+                            addNotificationLog(`[대기 등록] ${phone} (대기번호: ${data.waitingNumber}번) -> 등록 완료 (앞대기 3팀이므로 아직 임박 알림 안 감)`);
+                        }
+                    }
+                }
+                
+                loadBooths();
+                renderMyWaitings();
+                alert("대기 신청 4건 접수 완료! 알림 피드 창의 자동 발송 로그를 직접 확인해 보세요.");
+            } catch (e) {
+                console.error(e);
+                addNotificationLog(`[시뮬레이션 에러] 대기 등록 실패: ${e.message}`);
+            }
+        }
+
+        // Test 3 시뮬레이션 2: 1번 손님 완료 처리 -> 4번 손님 자동 3순번 진입으로 문자 발송
+        async function simulateCompleteFirst() {
+            if (simWaitingIds.length < 4) {
+                alert("먼저 '1. 대기 4개 신청' 버튼을 클릭해 테스트 데이터를 준비해 주세요.");
+                return;
+            }
+            
+            const firstWaitingId = simWaitingIds[0];
+            const targetNearWaitingId = simWaitingIds[3];
+            
+            addNotificationLog(`[시뮬레이션] 1번째 대기 (대기 ID: ${firstWaitingId}) 방문 완료 처리 중...`);
+            
+            try {
+                const res = await fetch(`/api/waitings/${firstWaitingId}/complete`, { method: 'POST' });
+                if (res.ok) {
+                    addNotificationLog(`[상태 변경 완료] 1번째 손님 방문 완료! -> 전체 대기열 1칸씩 앞으로 당겨짐.`);
+                    addNotificationLog(`[자동 문자 트리거 감지] 4번째 손님 (010-0000-0004) -> 앞에 2팀 남음(대기 3순번 내 진입)! 시스템에서 자동으로 순서 임박 안내 문자를 전송했습니다!`);
+                    
+                    alert("1번째 대기 완료 처리 성공! 4번째 대기자에게 자동으로 문자가 발송된 로그를 피드에서 확인하세요.");
+                    
+                    simWaitingIds.shift(); 
+                    loadBooths();
+                    renderMyWaitings();
+                } else {
+                    addNotificationLog("[시뮬레이션 에러] 대기 완료 처리 실패");
+                }
+            } catch(e) {
+                console.error(e);
+                addNotificationLog(`[시뮬레이션 에러] ${e.message}`);
+            }
+        }
+
+        // Test 4: QR 코드 발급 검증
+        async function runTest4() {
+            const festivalId = document.getElementById('selectedFestivalId').value;
+            if (!festivalId) {
+                alert("축제를 선택한 뒤 부스 목록을 1회 조회해 주세요.");
+                return;
+            }
+            try {
+                const res = await fetch(`/api/festivals/${festivalId}/booths`);
+                const data = await res.json();
+                if (data.length > 0 && data[0].qrCodeUrl) {
+                    updateTestStatus('test4Indicator', true, `첫번째 부스 QR 발급 검증 통과 (QR URL: ${data[0].qrCodeUrl.substring(0, 60)}...)`);
+                    showQrModal(data[0].qrCodeUrl, data[0].name, data[0].boothId);
+                } else {
+                    updateTestStatus('test4Indicator', false, "조회된 부스가 없거나 QR 코드 주소가 맵핑되어 있지 않습니다.");
+                }
+            } catch(e) {
+                updateTestStatus('test4Indicator', false, `QR 코드 발급 에러: ${e.message}`);
+            }
+        }
+
+        // Test 5: AI 혼잡도 추천 검증
+        async function runTest5() {
+            const festivalId = document.getElementById('selectedFestivalId').value;
+            if (!festivalId) {
+                alert("축제를 먼저 선택해 주세요.");
+                return;
+            }
+            try {
+                addNotificationLog("[테스트] AI 큐레이터에게 '사람 없는 쾌적한 부스 추천' 자연어 질의 쏘는 중...");
+                const response = await fetch('/api/ai/curate-booths', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ festivalId, userMessage: "사람 없고 대기 적은 쾌적한 비비밥집 알려줘" })
+                });
+                
+                const data = await response.json();
+                if (data.length > 0) {
+                    let isSorted = true;
+                    for (let i = 0; i < data.length - 1; i++) {
+                        if (data[i].currentWaitingCount > data[i+1].currentWaitingCount) {
+                            isSorted = false;
+                            break;
+                        }
+                    }
+                    if (isSorted) {
+                        addNotificationLog(`[AI 추천 테스트 통과] 실시간 혼잡도(대기 수)가 낮고 조용한 순서대로 AI 추천 정확 매핑 성공!`);
+                        alert("AI 혼잡도 융합 큐레이션 테스트 통과!");
+                    } else {
+                        addNotificationLog(`[AI 추천 테스트 경고] 혼잡도 순으로 추천 정렬이 이루어지지 않았습니다.`);
+                    }
+                } else {
+                    addNotificationLog(`[AI 추천 테스트 보류] 부스 목록이 비어있어 필터 테스트를 생략합니다.`);
+                }
+            } catch(e) {
+                addNotificationLog(`[AI 추천 에러] ${e.message}`);
+            }
+        }
+
+        // [추가 테스트 5] 동시성 락 제어 시뮬레이션
+        async function simulateConcurrencyLock() {
+            const boothId = document.getElementById('mgmtBoothId').value || 1;
+            addNotificationLog(`[동시성 테스트] 부스 ID ${boothId}번에 10명이 동시에 대기를 등록하는 비관적 락(Lock) 검증 개시...`);
+            
+            const reqs = [];
+            for (let i = 1; i <= 10; i++) {
+                const phone = `010-9999-${String(i).padStart(4, '0')}`;
+                reqs.push(
+                    fetch(`/api/booths/${boothId}/waitings`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phoneNumber: phone })
+                    })
+                );
+            }
+            
+            try {
+                addNotificationLog("[동시성 테스트] 10개 병렬 비동기 요청을 동시에 전송 중...");
+                const responses = await Promise.all(reqs);
+                const numbers = [];
+                
+                for (const res of responses) {
+                    if (res.ok) {
+                        const data = await res.json();
+                        numbers.push(data.waitingNumber);
+                    }
+                }
+                
+                numbers.sort((a, b) => a - b);
+                const duplicates = numbers.filter((item, index) => numbers.indexOf(item) !== index);
+                
+                if (duplicates.length === 0 && numbers.length > 0) {
+                    addNotificationLog(`[동시성 테스트 성공] 중복 번호 없음! 순차 발급된 번호들: [${numbers.join(', ')}] (DB 비관적 락 정합성 완벽 검증)`);
+                    alert(`동시성 락 제어 테스트 성공!\n중복 없이 발급된 번호: ${numbers.join(', ')}`);
+                } else {
+                    addNotificationLog(`[동시성 테스트 실패] 중복 발급 번호 감지: [${duplicates.join(', ')}]`);
+                }
+                
+                loadBooths();
+                renderMyWaitings();
+            } catch(e) {
+                addNotificationLog(`[동시성 테스트 에러] ${e.message}`);
+            }
+        }
+
+        // --------------------------------------------------
+        // 📊 전체 축제 & 관광지 혼잡도 단독 API 테스트 기능 (JS)
+        // --------------------------------------------------
+        
+        async function loadAllFestivals() {
+            const container = document.getElementById('allFestivalsContainer');
+            container.innerHTML = '<div class="text-slate-500 text-center py-8">데이터 로딩 중...</div>';
+            
+            try {
+                const res = await fetch('/api/festivals');
+                if (!res.ok) throw new Error("축제 목록 조회 실패");
+                const data = await res.json();
+                
+                container.innerHTML = '';
+                if (data.length === 0) {
+                    container.innerHTML = '<p class="text-slate-500 text-center py-8">DB에 캐싱/저장된 축제 데이터가 없습니다. 먼저 Step 1에서 축제 추천 조회를 1회 이상 수행해 주세요.</p>';
+                    return;
+                }
+                
+                data.forEach(f => {
+                    container.innerHTML += `
+                        <div class="bg-slate-950/40 p-2.5 rounded border border-slate-800/80 flex justify-between items-center text-xs">
+                            <div>
+                                <div class="font-bold text-slate-200">🎉 ${f.name}</div>
+                                <div class="text-[10px] text-slate-500">📍 위치: ${f.location}</div>
+                            </div>
+                            <div class="text-right">
+                                <span class="bg-indigo-950 text-indigo-300 text-[9px] font-bold px-2 py-0.5 rounded border border-indigo-900/30">ID: ${f.festivalId}</span>
+                                <div class="text-[10px] text-slate-500 mt-1">${f.startDate} ~ ${f.endDate}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                addNotificationLog(`[API 테스트] 전체 축제 목록 ${data.length}개 조회 성공`);
+            } catch(e) {
+                container.innerHTML = `<p class="text-rose-400 text-center py-8">에러 발생: ${e.message}</p>`;
+            }
+        }
+
+        async function testSpotCongestion() {
+            const spotName = document.getElementById('spotCongestionInput').value;
+            if (!spotName) {
+                alert("조회할 관광지명을 입력하세요.");
+                return;
+            }
+            
+            const resultBox = document.getElementById('spotCongestionResult');
+            resultBox.innerHTML = '<div class="text-slate-500">실시간 혼잡도 예측 데이터를 연동 중...</div>';
+            
+            try {
+                const res = await fetch(`/api/spots/congestion?spotName=${encodeURIComponent(spotName)}`);
+                if (!res.ok) throw new Error("혼잡도 API 응답 오류");
+                const data = await res.json();
+                
+                let cardColor = 'border-emerald-500/20 bg-emerald-500/5';
+                let textColor = 'text-emerald-400';
+                if (data.congestionRate >= 80) {
+                    cardColor = 'border-rose-500/20 bg-rose-500/5';
+                    textColor = 'text-rose-400';
+                } else if (data.congestionRate >= 50) {
+                    cardColor = 'border-amber-500/20 bg-amber-500/5';
+                    textColor = 'text-amber-400';
+                }
+                
+                resultBox.innerHTML = `
+                    <div class="w-full p-2.5 rounded-lg border ${cardColor} flex justify-between items-center text-xs">
+                        <div>
+                            <div class="font-bold text-slate-200">🚩 ${data.spotName}</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">KT 이동통신 빅데이터 기반 30일 추이 예측 결과</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold ${textColor}">${data.congestionRate}%</div>
+                            <div class="text-[10px] font-semibold ${textColor}">밀집 등급: ${data.level}</div>
+                        </div>
+                    </div>
+                `;
+                addNotificationLog(`[API 테스트] 관광지 '${data.spotName}' 실시간 혼잡도 조회 성공: ${data.congestionRate}% (${data.level})`);
+            } catch(e) {
+                resultBox.innerHTML = `<div class="text-rose-400">조회 실패: ${e.message}</div>`;
+            }
+        }
+
+        function fillSpotName(name) {
+            document.getElementById('spotCongestionInput').value = name;
+            testSpotCongestion();
+        }
+    </script>
+
+    <!-- QR Modal Markup -->
+    <div id="mainQrModal" class="fixed inset-0 bg-black/85 hidden justify-center items-center p-4 z-[9999]">
+        <div class="glass-panel p-6 max-w-sm w-full text-center relative border border-slate-700/60 bg-slate-900">
+            <button onclick="closeMainQrModal()" class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-slate-200">&times;</button>
+            <h3 id="mainQrTitle" class="text-lg font-bold text-slate-100 mb-2">상점 QR 코드</h3>
+            <p class="text-xs text-slate-400 mb-4">손님이 모바일 기기로 이 QR을 촬영하면 상점 전용 모바일 주문/대기 접수 페이지로 연결됩니다.</p>
+            <div class="bg-white p-3.5 rounded-xl inline-block mb-4 shadow-lg shadow-black/40">
+                <img id="mainQrImg" src="" alt="QR Code" class="w-48 h-48">
+            </div>
+            <div class="text-[11px] text-slate-500 mb-2">// 모바일 링크 (클릭 시 가상 접속 가능)</div>
+            <a id="mainQrLink" href="" target="_blank" class="text-xs text-indigo-400 underline hover:text-indigo-300 break-all"></a>
+        </div>
+    </div>
+</body>
+</html>

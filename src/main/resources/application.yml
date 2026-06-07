@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: festival-waiting-service
+  
+  # 로컬 테스트 편의를 위해 기본값으로 H2 인메모리 데이터베이스를 사용합니다.
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MySQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+# 외부 API 설정
+api:
+  tour:
+    service-key: "6216caee7398fb49a11eb001670c71522f94f181cb824b46b05ba330f00cd406"
+  kakao:
+    # 백엔드 주소 변환(Local REST API)에 사용할 REST API 키
+    rest-api-key: "9686c41f5bd9c4e7632c3f33d5d6c509"
+    # 프론트엔드 지도 렌더링에 사용할 JavaScript 키 (여기에 본인의 카카오 JavaScript 키를 직접 대입하세요!)
+    js-key: "afc128520ee0ba1a8488402ad3ebbbe0"
+  solapi:
+    # Solapi API Key
+    api-key: "NCSEMUXFI1QKUN0O"
+    # Solapi API Secret (솔라피 콘솔 - API Key 관리에서 발급받은 API Secret Key를 기입하세요)
+    api-secret: "IX1ESTZPLHVSIP6HL7STNCB8XCIMZ0Q1"
+    # Solapi 발신번호 (솔라피 콘솔에 등록 및 인증 완료된 본인의 발신번호를 입력하세요, 예: 01012345678)
+    sender-number: ""
+    # 실제 SMS/알림톡 발송 기능 활성화 여부 (true인 경우 실제 발송이 수행되어 포인트가 차감됩니다. false인 경우 콘솔 로깅으로 우회합니다.)
+    enabled: false
