@@ -19,12 +19,16 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    private final Key key;
+    private Key key;
     private final long tokenValidityInMilliseconds = 24 * 60 * 60 * 1000L; // 24 hours
 
-    public JwtTokenProvider() {
-        // H2 개발 및 로컬 기동 시 간편하도록 HS512 기반 런타임 랜덤 보안키 생성
-        this.key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    @org.springframework.beans.factory.annotation.Value("${jwt.secret}")
+    private String secretKey;
+
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        byte[] keyBytes = secretKey.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
     /**

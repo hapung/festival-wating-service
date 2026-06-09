@@ -39,3 +39,8 @@ api:
     sender-number: ""
     # 실제 SMS/알림톡 발송 기능 활성화 여부 (true인 경우 실제 발송이 수행되어 포인트가 차감됩니다. false인 경우 콘솔 로깅으로 우회합니다.)
     enabled: false
+
+# JWT 보안 키 설정 (HS512 알고리즘 사용을 위해 최소 64자 필수)
+jwt:
+  secret: "festival-waiting-2026-jwt-secret-key-must-be-at-least-64-characters-long-for-hs512"
+
