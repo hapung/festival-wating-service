@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import AppBar from '../../components/common/AppBar'
 import Btn from '../../components/common/Btn'
 import Badge from '../../components/common/Badge'
-import { useBoothDetail } from '../../api/queries'
+import { useBoothDetail, useWaitingStatus } from '../../api/queries'
 import ScrollArea from '../../components/common/ScrollArea'
 import { getImageUrl } from '../../api/client'
 
@@ -117,9 +117,22 @@ export default function BoothDetailPage() {
   const navigate = useNavigate()
 
   const { data: boothDetail, isLoading, error } = useBoothDetail(parseInt(boothId))
-
   const stored = localStorage.getItem(`waiting_booth_${boothId}`)
   const parsedWaiting = stored ? JSON.parse(stored) : null
+
+  const { data: waitingData, error: waitingError } = useWaitingStatus(parsedWaiting?.waitingId)
+  
+  // 만약 서버에서 404가 오거나 상태가 CANCELLED/COMPLETED라면 로컬스토리지 정리
+  React.useEffect(() => {
+    if (parsedWaiting && (waitingError || (waitingData && (waitingData.status === 'CANCELLED' || waitingData.status === 'COMPLETED')))) {
+      localStorage.removeItem(`waiting_booth_${boothId}`)
+    }
+  }, [parsedWaiting, waitingError, waitingData, boothId])
+
+  // 진짜로 유효한 대기인지 (로컬에 있고, 에러도 없고, 상태도 대기중/호출됨일 때만)
+  const isValidWaiting = parsedWaiting && !waitingError && (!waitingData || waitingData.status === 'WAITING' || waitingData.status === 'CALLED')
+
+
 
   const handleGoTrack = useCallback(() => {
     if (parsedWaiting) navigate(`/track/${parsedWaiting.waitingId}`)

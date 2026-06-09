@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Map, MapMarker, CustomOverlayMap } from 'react-kakao-maps-sdk'
 import { motion, AnimatePresence, useAnimation } from 'framer-motion'
-import { useRecommendFestivals, useFestivalBooths, useBoothDetail, useAiCurate, useFestivals } from '../../api/queries'
+import { useRecommendFestivals, useFestivalBooths, useBoothDetail, useAiCurate, useFestivals, useMyActiveWaitings } from '../../api/queries'
 import ScrollArea from '../../components/common/ScrollArea'
 import { getImageUrl } from '../../api/client'
 
@@ -66,27 +66,29 @@ function Logo() {
   )
 }
 
-function SearchInput({ value, onChange, placeholder = '어떤 축제를 찾고 계세요?', autoFocus, className = '', size = 'normal' }) {
-  const heightClass = size === 'small' ? 'min-h-[40px] text-[13px]' : 'min-h-[48px] text-[14px]'
-  const iconSize = size === 'small' ? 'text-[13px]' : 'text-[15px]'
-  const clearSize = size === 'small' ? 'text-[16px]' : 'text-[18px]'
+function SearchInput({ value, onChange, placeholder = '어떤 축제를 찾고 계세요?', autoFocus, className = '', size = 'normal', onKeyDown, onFocus }) {
+  const heightClass = size === 'small' ? 'min-h-[44px] text-[14px]' : 'min-h-[56px] text-[15px]'
+  const iconSize = size === 'small' ? 'text-[14px]' : 'text-[18px]'
+  const clearSize = size === 'small' ? 'text-[18px]' : 'text-[22px]'
 
   return (
-    <div className={`flex items-center gap-[9px] ${heightClass} border-[1.5px] border-[#34322e] rounded-[10px] px-[12px] bg-white ${className}`}
-      style={{ boxShadow: '0 2px 8px rgba(0,0,0,.05)' }}>
+    <div className={`flex items-center gap-[12px] ${heightClass} border-[2px] border-[#34322e] rounded-[18px] px-[16px] bg-white ${className}`}
+      style={{ boxShadow: '0 4px 12px rgba(0,0,0,.03)' }}>
       <span className={`text-[#e08a45] flex-none ${iconSize}`}>✦</span>
       <input
         autoFocus={autoFocus}
         type="text"
         value={value}
         onChange={onChange}
+        onFocus={onFocus}
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
-        className="flex-1 outline-none bg-transparent text-[#34322e] placeholder:text-[#a9a59c] w-full min-w-0"
+        className="flex-1 outline-none bg-transparent text-[#34322e] placeholder:text-[#a9a59c] w-full min-w-0 font-medium"
         style={{ fontFamily: "'IBM Plex Sans KR', system-ui, sans-serif" }}
       />
       {value && (
         <button onClick={() => onChange({ target: { value: '' } })}
-          className={`flex-none text-[#a9a59c] ${clearSize} leading-none`}>×</button>
+          className={`flex-none text-[#a9a59c] ${clearSize} leading-none active:scale-90 transition-transform`}>×</button>
       )}
     </div>
   )
@@ -94,7 +96,7 @@ function SearchInput({ value, onChange, placeholder = '어떤 축제를 찾고 �
 
 function FilterInput({ icon, value, placeholder, onClick }) {
   return (
-    <div onClick={onClick} className="flex items-center gap-[9px] min-h-[48px] border-[1.5px] border-[#d8d4cc] rounded-[12px] px-[14px] bg-white text-[14px] text-[#a9a59c] cursor-pointer active:bg-gray-50 transition-colors">
+    <div onClick={onClick} className="flex items-center gap-[10px] min-h-[50px] border border-[#d8d4cc] rounded-[16px] px-[16px] bg-white text-[14px] text-[#a9a59c] cursor-pointer active:bg-gray-50 transition-colors">
       {icon && <span className="flex-none">{icon}</span>}
       <span className={value ? 'text-[#34322e]' : 'text-[#a9a59c]'}>{value || placeholder}</span>
     </div>
@@ -319,6 +321,21 @@ function CongestionChip({ level, label }) {
   )
 }
 
+function BoothImage({ src, alt }) {
+  const [loaded, setLoaded] = React.useState(false)
+  return (
+    <div className="relative h-[110px] w-full rounded-2xl overflow-hidden mb-3 bg-[#efece6]">
+      {!loaded && <div className="absolute inset-0 animate-pulse bg-[#efece6]" />}
+      <img
+        src={src} alt={alt}
+        onLoad={() => setLoaded(true)}
+        className="h-full w-full object-cover transition-opacity duration-500"
+        style={{ opacity: loaded ? 1 : 0 }}
+      />
+    </div>
+  )
+}
+
 function Badge({ children, tone = 'default', className = '' }) {
   const styles = {
     default: 'bg-[#eceae5] border-[#d8d4cc] text-[#7c7972]',
@@ -520,9 +537,20 @@ const CARD_GRADIENTS = [
 
 const CARD_ICONS = ['🎪', '🎆', '🌸', '🍱', '🎵', '🌺', '🎠', '🥁', '🌾', '🎡']
 
+function useVisibleFestivalCount() {
+  const [count, setCount] = React.useState(() => window.innerHeight >= 700 ? 6 : window.innerHeight >= 680 ? 4 : 2)
+  React.useEffect(() => {
+    const update = () => setCount(window.innerHeight >= 700 ? 6 : window.innerHeight >= 680 ? 4 : 2)
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
+  return count
+}
+
 function ActiveFestivalCards({ onFestivalClick }) {
   const { data: festivals = [], isLoading } = useFestivals()
-  const active = festivals.slice(0, 4)
+  const maxCount = useVisibleFestivalCount()
+  const active = festivals.slice(0, maxCount)
 
   const dDays = (endDate) => {
     if (!endDate) return ''
@@ -534,15 +562,15 @@ function ActiveFestivalCards({ onFestivalClick }) {
 
   if (isLoading) return (
     <div className="grid grid-cols-2 gap-2.5 px-5">
-      {[...Array(4)].map((_, i) => (
-        <div key={i} className="h-[90px] rounded-[16px] bg-[#efece6] animate-pulse"
+      {[...Array(maxCount)].map((_, i) => (
+        <div key={i} className="h-[90px] rounded-[22px] bg-[#efece6] animate-pulse"
           style={{ animationDelay: `${i * 80}ms` }} />
       ))}
     </div>
   )
 
   if (active.length === 0) return (
-    <div className="mx-5 rounded-[20px] bg-[#f6f4ef] border border-[#e8e5de] flex flex-col items-center justify-center py-10 gap-2">
+    <div className="mx-5 rounded-3xl bg-[#f6f4ef] border border-[#e8e5de] flex flex-col items-center justify-center py-10 gap-2">
       <div className="text-[32px]">🎪</div>
       <div className="text-[13px] font-semibold text-[#7c7972]">등록된 축제가 없어요</div>
       <div className="text-[11.5px] text-[#a9a59c]">아래 검색으로 주변 축제를 찾아보세요</div>
@@ -564,7 +592,7 @@ function ActiveFestivalCards({ onFestivalClick }) {
             transition={{ duration: 0.32, delay: idx * 0.07, ease: [0.25, 0.46, 0.45, 0.94] }}
             whileTap={{ scale: 0.96 }}
             onClick={() => onFestivalClick(f)}
-            className="relative h-[90px] rounded-[16px] overflow-hidden flex flex-col justify-between p-3 text-left"
+            className="relative h-[90px] rounded-[22px] overflow-hidden flex flex-col justify-between p-3 text-left"
             style={{
               background: `linear-gradient(135deg, ${from} 0%, ${to} 100%)`,
               boxShadow: `0 4px 14px ${from}50`,
@@ -754,36 +782,24 @@ function FestivalBoothSheet({ festival, onClose }) {
 }
 
 // 상태 1 & 2: 메인 화면 (기본 & 타이핑 중 통합)
-function HomeMain({ isTyping, query, setQuery, onSearch, openSheet, filters, mapRef, handleZoomIn, handleZoomOut, recommendations, onMarkerClick, centerCoords, radiusKm, onFestivalClick }) {
+function HomeMain({ isTyping, onFocus, query, setQuery, onSearch, openSheet, filters, mapRef, handleZoomIn, handleZoomOut, recommendations, onMarkerClick, centerCoords, radiusKm, onFestivalClick }) {
   const SUGGESTIONS = ['🌾 특산물 먹거리 축제', '🎆 야경 좋은 불꽃 축제', '👨‍👩‍👧 가족 체험 부스']
   const [boothSheetFestival, setBoothSheetFestival] = useState(null)
 
   return (
     <>
-      {/* 앱바: 사용자가 제공한 두 번째 스크린샷(결과/상세 등) 스타일처럼 뒤로가기가 필요한 상황이 아니라면 로고+메뉴 유지, 
-          하지만 사진 1처럼 '주변 축제'나 '결과' 페이지 느낌의 헤더를 요청한 것이라면 이 부분을 수정합니다.
-          우선 로고를 유지하되 스타일을 더 깔끔하게 다듬고 햄버거 버튼 대신 알림/마이페이지 같은 아이콘 느낌으로 개선해 봅니다.
-          (원본 스크린샷 내용이 명확하지 않으므로 디자인 토큰에 맞춰 깔끔하게 재정비합니다) */}
-      <div className="flex-none flex items-center justify-between px-5 h-[68px] bg-white border-b border-[#e8e5de] z-10 relative">
+      {/* 앱바 (헤더) */}
+      <div className="flex-none flex items-center justify-between px-6 pt-7 pb-5 bg-white z-10 relative" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
         <Logo />
-        {!isTyping && (
-          <button className="w-[30px] h-[30px] rounded-[8px] border-[1.5px] border-[#d8d4cc] flex items-center justify-center text-[#7c7972] text-[18px] bg-white shadow-sm">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          </button>
-        )}
       </div>
 
       {/* 검색 + 필터 */}
       <div className="flex-none px-5 py-4 flex flex-col gap-[14px] z-10 relative">
         {/* SearchInput은 언마운트되지 않고 항상 유지됨 */}
-        <SearchInput value={query} onChange={e => setQuery(e.target.value)} autoFocus={isTyping} />
+        <SearchInput value={query} onChange={e => setQuery(e.target.value)} autoFocus={isTyping} onFocus={onFocus} onKeyDown={(e) => e.key === 'Enter' && query.trim() !== '' && onSearch()} />
         {/* 구분선 */}
-        <div className="flex items-center gap-2 text-[11px] text-[#a9a59c]">
-          <span className="flex-1 h-px bg-[#d8d4cc]" />또는 직접 조건 설정<span className="flex-1 h-px bg-[#d8d4cc]" />
+        <div className="flex items-center gap-3 text-[11px] text-[#a9a59c] px-3 font-semibold mt-1 mb-1">
+          <span className="flex-1 h-px bg-[#d8d4cc]/60" />또는 직접 조건 설정<span className="flex-1 h-px bg-[#d8d4cc]/60" />
         </div>
         {/* 필터 폼 */}
         <div className={`flex flex-col gap-3 transition-opacity duration-200 ${isTyping ? 'opacity-40 pointer-events-none' : ''}`}>
@@ -819,11 +835,11 @@ function HomeMain({ isTyping, query, setQuery, onSearch, openSheet, filters, map
           </div>
 
           {/* 하단 검색 버튼 */}
-          <div className="flex-none px-5 py-4 bg-white border-t border-[#e8e5de] z-10 relative">
+          <div className="flex-none px-6 pt-4 bg-white z-10 relative" style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))', boxShadow: '0 -4px 20px rgba(0,0,0,0.05)' }}>
             <button
               onClick={onSearch}
-              className="w-full min-h-[48px] rounded-[12px] font-semibold text-[15px] text-white flex items-center justify-center gap-[7px] active:opacity-80 transition-opacity"
-              style={{ background: '#e08a45', border: '1.5px solid #b56a2c', boxShadow: '0 2px 0 #b56a2c', fontFamily: "'IBM Plex Sans KR', system-ui, sans-serif" }}>
+              className="w-full min-h-[56px] rounded-[18px] font-bold text-[16px] text-white flex items-center justify-center gap-[7px] active:translate-y-[2px] transition-all"
+              style={{ background: '#e08a45', borderBottom: '3px solid #c46d2c', fontFamily: "'IBM Plex Sans KR', system-ui, sans-serif" }}>
               🔍 주변 축제 검색하기
             </button>
           </div>
@@ -834,11 +850,11 @@ function HomeMain({ isTyping, query, setQuery, onSearch, openSheet, filters, map
           <div className="flex-1 overflow-auto nice-scroll px-5 py-4 flex flex-col gap-[9px] z-10 relative">
             <span className="text-[11px] text-[#a9a59c] font-semibold"
               style={{ fontFamily: "'IBM Plex Sans KR', system-ui, sans-serif" }}>추천 검색어</span>
-            <div className="bg-white rounded-[16px] border border-[#d8d4cc] p-[6px] shadow-[0_4px_12px_rgba(0,0,0,0.03)]">
+            <div className="bg-white rounded-3xl border border-[#d8d4cc] p-[6px] shadow-[0_4px_12px_rgba(0,0,0,0.03)]">
               {SUGGESTIONS.map((t, i) => (
                 <div key={i}
-                  onClick={() => setQuery(t.replace(/^[^\s]+\s/, ''))}
-                  className="flex items-center gap-[10px] px-[12px] py-[10px] rounded-[10px] text-[13px] text-[#34322e] hover:bg-[#f6f4ef] active:bg-[#efece6] cursor-pointer transition-colors">
+                  onClick={() => { setQuery(t.replace(/^[^\s]+\s/, '')); onSearch(); }}
+                  className="flex items-center gap-[10px] px-[12px] py-[10px] rounded-2xl text-[13px] text-[#34322e] hover:bg-[#f6f4ef] active:bg-[#efece6] cursor-pointer transition-colors">
                   {t}
                 </div>
               ))}
@@ -846,11 +862,11 @@ function HomeMain({ isTyping, query, setQuery, onSearch, openSheet, filters, map
           </div>
 
           {/* 하단 AI 검색 버튼 */}
-          <div className="flex-none px-5 py-4 bg-white border-t border-[#e8e5de] z-10 relative">
+          <div className="flex-none px-5 py-4 bg-white z-10 relative rounded-t-3xl" style={{ boxShadow: '0 -4px 16px rgba(0,0,0,0.07)' }}>
             <button
               onClick={onSearch}
-              className="w-full min-h-[48px] rounded-[12px] font-semibold text-[15px] text-white flex items-center justify-center gap-[7px] active:opacity-80 transition-opacity"
-              style={{ background: '#e08a45', border: '1.5px solid #b56a2c', boxShadow: '0 2px 0 #b56a2c', fontFamily: "'IBM Plex Sans KR', system-ui, sans-serif" }}>
+              className="w-full min-h-[52px] rounded-2xl font-semibold text-[15px] text-white flex items-center justify-center gap-[7px] active:opacity-80 transition-opacity"
+              style={{ background: '#e08a45', border: '1.5px solid #b56a2c', boxShadow: '0 3px 0 #b56a2c', fontFamily: "'IBM Plex Sans KR', system-ui, sans-serif" }}>
               ✦ AI 검색
             </button>
           </div>
@@ -872,7 +888,7 @@ function HomeMain({ isTyping, query, setQuery, onSearch, openSheet, filters, map
 
 // 상태 3: 검색 결과
 function HomeResults({ query, recommendations, isRecommendLoading, selectedFestivalId, setSelectedFestivalId, booths, isBoothsLoading, selectedBoothId, setSelectedBoothId, boothDetail, isBoothDetailLoading, onBack, navigate, mapRef, handleZoomIn, handleZoomOut, filters, openSheet }) {
-  const [sheetState, setSheetState] = useState('collapsed') // 'collapsed' | 'expanded'
+  const [sheetState, setSheetState] = useState('hidden') // 'hidden' | 'collapsed' | 'expanded'
   const [sheetView, setSheetView] = useState('festivals') // 'festivals' | 'booths' | 'booth_detail'
   const [selectedFestival, setSelectedFestival] = useState(null)
   const [isMounted, setIsMounted] = useState(false)
@@ -885,6 +901,14 @@ function HomeResults({ query, recommendations, isRecommendLoading, selectedFesti
 
   useEffect(() => {
     setIsMounted(true)
+    // 약간의 딜레이를 주어 화면 렌더링이 완료된 후 애니메이션이 시작되도록 함 (순간이동 방지)
+    const timer = setTimeout(() => {
+      // url로 특정 축제를 지정해서 들어온 게 아니라면 기본적으로 collapsed 상태로 올림
+      if (!(selectedFestivalId && recommendations)) {
+        setSheetState('collapsed')
+      }
+    }, 50)
+    
     // 지도 마커 클릭으로 진입한 경우 — selectedFestivalId가 이미 설정됐으면 부스 뷰 바로 열기
     if (selectedFestivalId && recommendations) {
       const f = recommendations.find(r => r.festivalId === selectedFestivalId)
@@ -894,8 +918,17 @@ function HomeResults({ query, recommendations, isRecommendLoading, selectedFesti
         setSheetView('booths')
       }
     }
+    return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // 필터 바뀌면 축제 목록으로 리셋
+  useEffect(() => {
+    if (!isMounted) return
+    setSheetView('festivals')
+    setSelectedFestival(null)
+    setSheetState('expanded')
+  }, [filters])
 
   const handleDragEnd = (e, info) => {
     if (info.offset.y < -30) setSheetState('expanded')
@@ -993,17 +1026,17 @@ function HomeResults({ query, recommendations, isRecommendLoading, selectedFesti
       {/* 드래그 가능한 슬라이드업 바텀 시트 */}
       <motion.div
         drag="y"
-        dragConstraints={{ top: 0, bottom: 0 }}
+        dragConstraints={{ top: 0 }}
         dragElastic={0.2}
         onDragEnd={handleDragEnd}
         animate={sheetState}
-        initial={isMounted ? false : "hidden"}
+        initial="hidden"
         variants={{
-          hidden: { y: '100%' },           // 완전히 숨김
-          collapsed: { y: 'calc(100% - 30px)' }, // 210px 노출 — 카드 1개 + 헤더가 잘리지 않도록
-          expanded: { y: 0 }              // 전체 확장
+          hidden: { y: '100%' },
+          collapsed: { y: '88%' },
+          expanded: { y: '0%' }
         }}
-        transition={{ type: 'spring', damping: 26, stiffness: 220 }}
+        transition={{ type: 'spring', damping: 22, stiffness: 120 }}
         className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[20px] z-20 px-4 pt-[10px] flex flex-col"
         style={{ height: '75vh', boxShadow: '0 -6px 20px rgba(0,0,0,.08)' }}
       >
@@ -1084,10 +1117,14 @@ function HomeResults({ query, recommendations, isRecommendLoading, selectedFesti
                       <div className="text-[12.5px] text-[#a9a59c]">위치나 반경 조건을 바꿔서 다시 검색해 보세요</div>
                     </div>
                   ) : (
-                    sortedRecommendations.map(f => {
-                      return (
+                    sortedRecommendations.map((f, i) => (
+                      <motion.div
+                        key={f.festivalId}
+                        initial={{ opacity: 0, y: 14 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.28, delay: i * 0.06, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      >
                         <FestivalCard
-                          key={f.festivalId}
                           ai={f.festivalId === 3 ? "인기 최고의 야시장!" : undefined}
                           name={f.name}
                           period={`${f.startDate} ~ ${f.endDate}`}
@@ -1101,8 +1138,8 @@ function HomeResults({ query, recommendations, isRecommendLoading, selectedFesti
                             if (f.lat && f.lng) setMapFocusCoords({ lat: f.lat, lng: f.lng })
                           }}
                         />
-                      )
-                    })
+                      </motion.div>
+                    ))
                   )}
                 </ScrollArea>
               </motion.div>
@@ -1152,8 +1189,14 @@ function HomeResults({ query, recommendations, isRecommendLoading, selectedFesti
                   ) : sortedBooths.length === 0 ? (
                     <div className="text-center py-6 text-[13px] text-[#7c7972]">아직 등록된 대기용 부스가 없습니다.</div>
                   ) : (
-                    sortedBooths.map(b => (
-                      <div key={b.boothId ?? b.id} onClick={() => { setSelectedBoothId(b.boothId ?? b.id); setSheetView('booth_detail'); }} className="bg-white border-[1.5px] border-[#d8d4cc] rounded-[14px] p-3.5 flex gap-3 items-center cursor-pointer active:scale-[.98] transition-transform">
+                    sortedBooths.map((b, i) => (
+                      <motion.div
+                        key={b.boothId ?? b.id}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25, delay: i * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        onClick={() => { setSelectedBoothId(b.boothId ?? b.id); setSheetView('booth_detail'); }}
+                        className="bg-white border-[1.5px] border-[#d8d4cc] rounded-[14px] p-3.5 flex gap-3 items-center cursor-pointer active:scale-[.98] transition-transform">
                         <div className="w-12 h-12 rounded-xl bg-[#efece6] border border-[#e8e5de] flex-none flex items-center justify-center text-2xl">🏮</div>
                         <div className="flex-1 min-w-0">
                           <div className="font-num font-bold text-[15px]">{b.name}</div>
@@ -1167,7 +1210,7 @@ function HomeResults({ query, recommendations, isRecommendLoading, selectedFesti
                         ) : (
                           <Badge tone="green" className="flex-none">바로 입장</Badge>
                         )}
-                      </div>
+                      </motion.div>
                     ))
                   )}
                 </ScrollArea>
@@ -1193,11 +1236,26 @@ function HomeResults({ query, recommendations, isRecommendLoading, selectedFesti
 
                 <ScrollArea className="flex-1 min-h-0" innerClassName="px-1 pb-4">
                   {(isBoothDetailLoading || !boothDetail) ? (
-                    <div className="text-center py-6 text-[13px] text-[#7c7972]">부스 상세 정보 불러오는 중...</div>
+                    <div className="flex flex-col gap-3 animate-pulse">
+                      <div className="h-[110px] w-full rounded-2xl bg-[#efece6]" />
+                      <div className="h-4 w-1/2 rounded-full bg-[#efece6]" />
+                      <div className="h-3 w-2/3 rounded-full bg-[#efece6]" />
+                      <div className="h-px bg-[#e8e5de]" />
+                      <div className="h-3.5 w-1/4 rounded-full bg-[#efece6]" />
+                      {[1, 2, 3].map(n => (
+                        <div key={n} className="flex gap-3 items-center">
+                          <div className="w-10 h-10 rounded-xl bg-[#efece6] flex-none" />
+                          <div className="flex-1 flex flex-col gap-1.5">
+                            <div className="h-3 w-1/2 rounded-full bg-[#efece6]" />
+                            <div className="h-2.5 w-1/4 rounded-full bg-[#efece6]" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   ) : (
                     <>
                       {boothDetail.imageUrl ? (
-                        <img src={getImageUrl(boothDetail.imageUrl)} alt={boothDetail.name} className="h-[110px] w-full rounded-2xl object-cover mb-3" />
+                        <BoothImage src={getImageUrl(boothDetail.imageUrl)} alt={boothDetail.name} />
                       ) : (
                         <div className="h-[110px] rounded-2xl bg-[#efece6] border border-[#e8e5de] flex items-center justify-center text-[#a9a59c] text-[13px] mb-3">
                           🏮 부스 대표 이미지
@@ -1297,12 +1355,12 @@ const RADIUS_OPTIONS = ['10 km', '20 km', '30 km', '50 km']
 
 const QUICK_LOCATIONS = [
   { label: '홍대입구', lat: 37.5568, lng: 126.9242 },
-  { label: '강남역',   lat: 37.4979, lng: 127.0276 },
-  { label: '성수동',   lat: 37.5440, lng: 127.0564 },
-  { label: '이태원',   lat: 37.5340, lng: 126.9947 },
-  { label: '여의도',   lat: 37.5219, lng: 126.9245 },
-  { label: '종로',     lat: 37.5704, lng: 126.9914 },
-  { label: '잠실',     lat: 37.5133, lng: 127.1001 },
+  { label: '강남역', lat: 37.4979, lng: 127.0276 },
+  { label: '성수동', lat: 37.5440, lng: 127.0564 },
+  { label: '이태원', lat: 37.5340, lng: 126.9947 },
+  { label: '여의도', lat: 37.5219, lng: 126.9245 },
+  { label: '종로', lat: 37.5704, lng: 126.9914 },
+  { label: '잠실', lat: 37.5133, lng: 127.1001 },
 ]
 
 // ── 메인 컴포넌트 ────────────────────────────────────────────────
@@ -1319,11 +1377,27 @@ export default function HomePage() {
   // 위치 좌표 (자유 입력 geocoding 결과 저장)
   const [locationCoords, setLocationCoords] = useState({ lat: 37.5568, lng: 126.9242 })
 
+  const combinedFilters = useMemo(
+    () => ({ ...filters, locationCoords }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filters.location, filters.radius, filters.time, locationCoords.lat, locationCoords.lng]
+  )
+
   // 바텀 시트 상태
   const [activeSheet, setActiveSheet] = useState(null) // null | 'location' | 'radius' | 'time'
 
   const navigate = useNavigate()
   const mapRef = useRef(null)
+
+  // 앱 재진입 시 활성 대기 복원 → TrackPage로 자동 이동
+  const savedFestivalId = localStorage.getItem('customer_festival_id')
+  const { data: activeWaitings } = useMyActiveWaitings(savedFestivalId ? parseInt(savedFestivalId) : null)
+  useEffect(() => {
+    if (activeWaitings && activeWaitings.length > 0) {
+      const active = activeWaitings.find(w => w.status === 'WAITING' || w.status === 'CALLED')
+      if (active) navigate(`/track/${active.waitingId}`, { replace: true })
+    }
+  }, [activeWaitings, navigate])
 
   // API Call - 위치 기반 축제 추천 조회
   const coords = locationCoords
@@ -1390,13 +1464,17 @@ export default function HomePage() {
     setFilters(prev => ({ ...prev, [key]: value }))
     if (key === 'location' && coords) setLocationCoords(coords)
     setActiveSheet(null)
+    // 필터 바뀌면 선택 초기화 + 결과 view로 자동 전환
+    setSelectedFestivalId(null)
+    setSelectedBoothId(null)
+    setView('results')
   }
 
 
   return (
     <div className="flex flex-col h-[100dvh] bg-[#faf8f4] overflow-hidden relative">
       {(view === 'default' || view === 'typing') && (
-        <HomeMain
+        <HomeMain onFocus={() => setView('typing')}
           isTyping={view === 'typing'}
           query={query} setQuery={handleQueryChange} onSearch={handleSearch}
           openSheet={setActiveSheet} filters={filters}
@@ -1433,7 +1511,7 @@ export default function HomePage() {
           mapRef={mapRef}
           handleZoomIn={handleZoomIn}
           handleZoomOut={handleZoomOut}
-          filters={{ ...filters, locationCoords }}
+          filters={combinedFilters}
           openSheet={setActiveSheet}
         />
       )}

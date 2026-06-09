@@ -63,9 +63,21 @@ export default function AdminLoginPage() {
       const payload = decodeJWT(data.token)
       const role = payload?.role || 'ROLE_MERCHANT'
       
+      // 1) username 키로 저장된 boothId 확인
+      const savedBoothId = localStorage.getItem(`booth_${username}`)
+      // 2) 혹은 기존 localStorage 세션에 남아있는 boothId 활용 (코드 변경 이전 등록된 부스 복원)
+      const prevSession = (() => { try { return JSON.parse(localStorage.getItem('admin_session')) } catch { return null } })()
+      const resolvedBoothId = savedBoothId ? Number(savedBoothId) : (prevSession?.boothId || null)
+
       const storage = keep ? localStorage : sessionStorage
-      storage.setItem('admin_session', JSON.stringify({ token: data.token, boothName: username, role }))
-      
+      storage.setItem('admin_session', JSON.stringify({
+        token: data.token,
+        boothName: username,
+        username,
+        role,
+        ...(resolvedBoothId ? { boothId: resolvedBoothId } : {}),
+      }))
+
       if (role === 'ROLE_ADMIN') {
         navigate('/admin/super', { replace: true })
       } else if (role === 'ROLE_ORGANIZER') {

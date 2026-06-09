@@ -10,7 +10,7 @@ const CONFIGS = {
     title: '대기가 취소되었습니다.',
     desc: '다음에 다시 만나요!\n언제든 새로 대기를 접수할 수 있어요.',
     primary: '다시 대기 접수하기',
-    secondary: '부스 목록으로 돌아가기',
+    secondary: '홈으로 돌아가기',
   },
   noshow: {
     icon: '⏱️',
@@ -19,16 +19,16 @@ const CONFIGS = {
     title: '시간이 초과되어\n대기가 자동 취소되었습니다.',
     desc: '호출 후 일정 시간 내 미방문으로\n순서가 자동 취소되었어요.',
     primary: '다시 대기 접수하기',
-    secondary: '부스 목록으로 돌아가기',
+    secondary: '홈으로 돌아가기',
   },
   completed: {
-    icon: '✅',
-    iconBg: '#e6f2e6',
-    iconBorder: '#4CAF50',
-    title: '입장이 완료되었습니다!',
-    desc: '맛있게 즐기세요 🎉\n이용해 주셔서 감사합니다.',
+    icon: '🎉',
+    iconBg: '#f8e9d8',
+    iconBorder: '#e08a45',
+    title: '지금 입장해 주세요!',
+    desc: '매장 앞으로 방문해 주세요 😊\n즐거운 시간 보내세요!',
     primary: null,
-    secondary: '부스 목록으로 돌아가기',
+    secondary: '홈으로 돌아가기',
   },
 }
 
@@ -59,15 +59,15 @@ export default function ResultPage() {
       </div>
 
       {/* 버튼 */}
-      <div className="flex-none px-4 pb-6 flex flex-col gap-2.5">
+      <div className="flex-none px-4 pb-6 flex flex-row gap-2.5">
+        {cfg.secondary && (
+          <Btn variant="secondary" full onClick={() => navigate('/home')}>
+            {cfg.secondary}
+          </Btn>
+        )}
         {cfg.primary && (
           <Btn variant="primary" full onClick={() => navigate('/booth/1')}>
             {cfg.primary}
-          </Btn>
-        )}
-        {cfg.secondary && (
-          <Btn variant="secondary" full onClick={() => navigate('/booths/1')}>
-            {cfg.secondary}
           </Btn>
         )}
       </div>

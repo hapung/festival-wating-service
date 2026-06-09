@@ -14,6 +14,7 @@ import AdminRegisterPage from './pages/admin/AdminRegisterPage'
 import AdminQueuePage   from './pages/admin/AdminQueuePage'
 import OrganizerDashboardPage from './pages/admin/OrganizerDashboardPage'
 import SuperAdminDashboardPage from './pages/admin/SuperAdminDashboardPage'
+import AdminSettingsPage from './pages/admin/AdminSettingsPage'
 import MyHistoryPage    from './pages/MyHistoryPage'
 import QrLandingPage   from './pages/qr/QrLandingPage'
 import ErrorPage        from './pages/ErrorPage'
@@ -114,12 +115,11 @@ function AnimatedRoutes() {
         <Route path="/track/:waitingId" element={<PageTransition><TrackPage /></PageTransition>} />
         <Route path="/error" element={<PageTransition><ErrorPage /></PageTransition>} />
 
-        {/* 로그인 필요 */}
-        <Route path="/home" element={<PageTransition><UserGuard><HomePage /></UserGuard></PageTransition>} />
-        <Route path="/booths/:festivalId" element={<PageTransition><UserGuard><BoothListPage /></UserGuard></PageTransition>} />
-        <Route path="/booth/:boothId" element={<PageTransition><UserGuard><BoothDetailPage /></UserGuard></PageTransition>} />
-        <Route path="/result/:type" element={<PageTransition><UserGuard><ResultPage /></UserGuard></PageTransition>} />
-        <Route path="/history" element={<PageTransition><UserGuard><MyHistoryPage /></UserGuard></PageTransition>} />
+        <Route path="/home" element={<PageTransition><HomePage /></PageTransition>} />
+        <Route path="/booths/:festivalId" element={<PageTransition><BoothListPage /></PageTransition>} />
+        <Route path="/booth/:boothId" element={<PageTransition><BoothDetailPage /></PageTransition>} />
+        <Route path="/result/:type" element={<PageTransition><ResultPage /></PageTransition>} />
+        <Route path="/history" element={<PageTransition><MyHistoryPage /></PageTransition>} />
       </Routes>
     </AnimatePresence>
   )
@@ -137,6 +137,7 @@ function AdminAnimatedRoutes() {
         <Route path="queue" element={<AdminPageTransition><AdminGuard><AdminQueuePage /></AdminGuard></AdminPageTransition>} />
         <Route path="organizer" element={<AdminPageTransition><AdminGuard><OrganizerDashboardPage /></AdminGuard></AdminPageTransition>} />
         <Route path="super" element={<AdminPageTransition><AdminGuard><SuperAdminDashboardPage /></AdminGuard></AdminPageTransition>} />
+        <Route path="settings" element={<AdminPageTransition><AdminGuard><AdminSettingsPage /></AdminGuard></AdminPageTransition>} />
       </Routes>
     </AnimatePresence>
   )

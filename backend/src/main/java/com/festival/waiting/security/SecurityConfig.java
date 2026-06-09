@@ -38,6 +38,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/festivals", "/api/festivals/recommend").permitAll()
                 .requestMatchers("/api/festivals/*/booths").permitAll()
                 .requestMatchers("/api/booths/*").permitAll()
+                .requestMatchers("/api/booths/*/waitings").permitAll()
+                .requestMatchers("/api/waitings/*/status", "/api/waitings/*/cancel").permitAll()
                 .requestMatchers("/api/spots/congestion").permitAll()
                 .requestMatchers("/api/ai/curate").permitAll()
                 

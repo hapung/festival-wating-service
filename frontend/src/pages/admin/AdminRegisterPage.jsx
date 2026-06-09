@@ -170,85 +170,77 @@ function ImageUpload({ value, onChange, size = 'lg', label }) {
 
 // ── 부스 정보 조회 뷰 ────────────────────────────────────────────
 function BoothView({ booth, qrCodeUrl, onEdit }) {
-  const [showQr, setShowQr] = useState(!!qrCodeUrl)
-
-  const handleDownload = async () => {
-    if (!qrCodeUrl) return
-    try {
-      const res = await fetch(qrCodeUrl)
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url; a.download = `${booth.name}_QR.png`; a.click()
-      URL.revokeObjectURL(url)
-    } catch { window.open(qrCodeUrl, '_blank') }
-  }
 
   return (
-    <ScrollArea className="flex-1 min-h-0" innerClassName="px-5 sm:px-7 py-5 flex flex-col gap-5 max-w-[680px]">
+    <ScrollArea className="flex-1 min-h-0" innerClassName="max-w-[680px] mx-auto w-full">
+      <div className="px-4 sm:px-6 py-5 pb-8 flex flex-col gap-4">
 
-      {/* QR 코드 카드 */}
-      {qrCodeUrl && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}
-          className="rounded-2xl bg-[#fdf5ec] border border-[#ecd3b6] p-4 flex items-center gap-4">
-          <div className="w-20 h-20 rounded-xl bg-white border border-[#d8d4cc] p-1.5 flex-none shadow-sm">
-            <img src={qrCodeUrl} alt="QR" className="w-full h-full object-contain" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[12px] text-[#b56a2c] font-num font-bold mb-0.5">📲 부스 QR 코드</div>
-            <div className="text-[13px] font-num font-semibold text-[#34322e] truncate">{booth.name}</div>
-            <div className="text-[11.5px] text-[#7c7972] mt-0.5 truncate">{booth.locationDescription}</div>
-            <button onClick={handleDownload}
-              className="mt-2 text-[11.5px] font-num font-semibold text-[#b56a2c] bg-white border border-[#e08a45] px-2.5 py-1 rounded-lg">
-              ⬇ QR 다운로드
-            </button>
-          </div>
-        </motion.div>
-      )}
-
-      {/* 기본 정보 */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, delay: 0.05 }}>
-        <SectionTitle>기본 정보</SectionTitle>
-        <div className="rounded-xl border border-[#e8e5de] bg-white overflow-hidden">
-          {booth.imageUrl && (
-            <img src={getImageUrl(booth.imageUrl)} alt="" className="w-full h-[140px] object-cover" />
+      {/* 부스 히어로 카드 */}
+      <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
+        className="rounded-3xl overflow-hidden bg-white"
+        style={{ boxShadow: '0 2px 0 rgba(0,0,0,0.03), 0 8px 24px rgba(0,0,0,0.07)' }}>
+        {/* 이미지 or 플레이스홀더 */}
+        <div className="relative w-full h-[140px] bg-[#efece6] flex-none">
+          {booth.imageUrl ? (
+            <img src={getImageUrl(booth.imageUrl)} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[48px] opacity-20">🏮</div>
           )}
-          <div className="p-4 flex flex-col gap-2.5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="font-num font-bold text-[17px] text-[#34322e]">{booth.name}</div>
-                <div className="text-[12.5px] text-[#7c7972] mt-0.5">📍 {booth.locationDescription}</div>
-              </div>
-              <span className="flex-none text-[11.5px] font-num font-semibold text-[#4CAF50] bg-[#e6f2e6] border border-[#4CAF50] px-2.5 py-1 rounded-full">운영중</span>
-            </div>
-            {booth.description && (
-              <div className="text-[13px] text-[#7c7972] leading-relaxed border-t border-[#f0ede8] pt-2.5">{booth.description}</div>
-            )}
+          {/* 운영 상태 배지 */}
+          <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm border border-[#4CAF50]/30"
+            style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <span className="w-2 h-2 rounded-full bg-[#4CAF50] animate-pulse" />
+            <span className="text-[11px] font-num font-bold text-[#2f7a33]">운영 중</span>
           </div>
+        </div>
+        {/* 부스 정보 */}
+        <div className="px-4 pt-3.5 pb-4 flex flex-col gap-1.5">
+          <div className="font-num font-bold text-[18px] text-[#34322e] leading-snug">{booth.name}</div>
+          <div className="flex items-center gap-1.5 text-[12.5px] text-[#7c7972]">
+            <span>📍</span><span>{booth.locationDescription}</span>
+          </div>
+          {booth.description && (
+            <div className="mt-1.5 pt-2.5 border-t border-[#f0ede8] text-[13px] text-[#7c7972] leading-[1.6]">{booth.description}</div>
+          )}
         </div>
       </motion.div>
 
+
       {/* 메뉴판 */}
       {booth.products?.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, delay: 0.1 }}>
-          <SectionTitle>메뉴판 ({booth.products.length}개)</SectionTitle>
-          <div className="flex flex-col gap-2">
+        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+          <div className="flex items-center gap-2 mb-3 px-0.5">
+            <span className="font-num font-bold text-[13.5px] text-[#34322e]">메뉴판</span>
+            <span className="text-[11.5px] font-num font-semibold text-[#e08a45] bg-[#f8e9d8] px-2 py-0.5 rounded-full">{booth.products.length}개</span>
+            <div className="flex-1 h-px bg-[#ece9e3]" />
+          </div>
+          <div className="flex flex-col gap-2.5">
             {booth.products.map((p, idx) => (
               <div key={p.productId ?? p.id ?? idx}
-                className={`flex gap-3 px-3.5 py-3 rounded-xl border ${p.isSpecialty ? 'bg-[#fdf5ec] border-[#ecd3b6]' : 'bg-white border-[#e8e5de]'}`}>
+                className="flex gap-3.5 px-4 py-3.5 rounded-2xl bg-white"
+                style={{
+                  border: p.isSpecialty ? '1px solid #ecd3b6' : '1px solid #ece9e3',
+                  background: p.isSpecialty ? 'linear-gradient(135deg, #fdf5ec, #fff)' : '#fff',
+                  boxShadow: '0 1px 0 rgba(0,0,0,0.02), 0 3px 10px rgba(0,0,0,0.04)',
+                }}>
                 {p.imageUrl ? (
-                  <img src={getImageUrl(p.imageUrl)} alt="" className="w-12 h-12 rounded-xl object-cover flex-none" />
+                  <img src={getImageUrl(p.imageUrl)} alt="" className="w-14 h-14 rounded-2xl object-cover flex-none" />
                 ) : (
-                  <div className="w-12 h-12 rounded-xl bg-[#efece6] border border-[#e8e5de] flex-none" />
+                  <div className="w-14 h-14 rounded-2xl bg-[#efece6] border border-[#e8e5de] flex items-center justify-center text-[22px] flex-none">🍽️</div>
                 )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-num font-bold text-[14px] text-[#34322e]">{p.name}</span>
-                    {p.isSpecialty && <span className="inline-flex items-center h-4 px-1.5 rounded-full bg-[#f8e9d8] border border-[#e08a45] text-[#b56a2c] text-[9px] font-num font-bold">🌾 특산물</span>}
+                <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-num font-bold text-[14.5px] text-[#34322e]">{p.name}</span>
+                    {p.isSpecialty && (
+                      <span className="inline-flex items-center gap-0.5 h-[18px] px-2 rounded-full bg-[#f8e9d8] border border-[#e08a45]/50 text-[#b56a2c] text-[9.5px] font-num font-bold">🌾 특산물</span>
+                    )}
                   </div>
-                  {p.description && <div className="text-[11.5px] text-[#a9a59c] mt-0.5">{p.description}</div>}
+                  {p.description && <div className="text-[12px] text-[#a9a59c] leading-[1.4]">{p.description}</div>}
                 </div>
-                <div className="font-num font-bold text-[14px] text-[#b56a2c] flex-none self-center">{p.price?.toLocaleString()}원</div>
+                <div className="flex-none self-center text-right">
+                  <div className="font-num font-bold text-[15px] text-[#b56a2c]">{p.price?.toLocaleString()}</div>
+                  <div className="text-[10.5px] text-[#a9a59c]">원</div>
+                </div>
               </div>
             ))}
           </div>
@@ -256,11 +248,17 @@ function BoothView({ booth, qrCodeUrl, onEdit }) {
       )}
 
       {/* 수정하기 버튼 */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, delay: 0.15 }}
-        className="pb-2">
-        <Btn variant="primary" full onClick={onEdit}>✏️ 수정하기</Btn>
+      <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.14 }}
+        className="flex justify-end pb-2">
+        <button
+          onClick={onEdit}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-white text-[14px] font-num font-semibold transition-all active:scale-95"
+          style={{ background: '#e08a45', boxShadow: '0 3px 0 #b56a2c' }}
+        >
+          ✏️ 수정하기
+        </button>
       </motion.div>
-
+      </div>
     </ScrollArea>
   )
 }
@@ -343,7 +341,10 @@ function BoothForm({ initialData, isCreate, festivals, onSave, onCancel }) {
         const res = await client.post('/api/booths', payload)
         data = res.data
       }
-      saveAdminSession({ boothId: data.boothId ?? data.id, boothName: data.name })
+      const boothId = data.boothId ?? data.id
+      saveAdminSession({ boothId, boothName: data.name })
+      const session = getAdminSession()
+      if (session?.username) localStorage.setItem(`booth_${session.username}`, boothId)
       onSave(data)
     } catch (err) {
       console.error("Error in handleSubmit:", err)
@@ -363,7 +364,8 @@ function BoothForm({ initialData, isCreate, festivals, onSave, onCancel }) {
   }
 
   return (
-    <ScrollArea className="flex-1 min-h-0" innerClassName="px-5 sm:px-7 py-5 flex flex-col gap-6 max-w-[680px]">
+    <ScrollArea className="flex-1 min-h-0" innerClassName="max-w-[680px] mx-auto w-full">
+      <div className="px-5 sm:px-7 py-5 flex flex-col gap-6 pb-12">
 
       {/* 기본 정보 */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
@@ -477,7 +479,7 @@ function BoothForm({ initialData, isCreate, festivals, onSave, onCancel }) {
           {loading ? (isCreate ? '등록 중...' : '저장 중...') : (isCreate ? '부스 등록하기' : '완료')}
         </Btn>
       </motion.div>
-
+      </div>
     </ScrollArea>
   )
 }
@@ -496,6 +498,12 @@ export default function AdminRegisterPage() {
 
   useEffect(() => {
     if (boothData?.qrCodeUrl) setQrCodeUrl(boothData.qrCodeUrl)
+    // 부스 데이터 로드 성공 시 username 키로 localStorage에 저장 (재로그인 시 복원용)
+    if (boothData) {
+      const boothId = boothData.boothId ?? boothData.id
+      const s = getAdminSession()
+      if (s?.username && boothId) localStorage.setItem(`booth_${s.username}`, boothId)
+    }
   }, [boothData])
 
   const displayBooth = savedBooth || boothData
@@ -517,7 +525,7 @@ export default function AdminRegisterPage() {
   return (
     <AdminLayout>
       {/* 헤더 */}
-      <div className="flex-none px-5 sm:px-7 py-4 border-b border-[#e8e5de] bg-white flex items-center justify-between">
+      <div className="flex-none px-5 sm:px-7 pt-5 pb-4 bg-white flex items-center justify-between rounded-b-3xl z-10 relative" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.07)' }}>
         <div>
           <div className="font-num font-bold text-[17px] text-[#34322e]">
             {showCreate ? '부스 등록' : showEdit ? '부스 수정' : '내 부스'}

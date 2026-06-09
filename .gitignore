@@ -19,3 +19,4 @@ logs/
 
 # Claude Code
 .claude/
+backend/src/main/resources/application.yml

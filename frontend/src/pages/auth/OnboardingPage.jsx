@@ -15,7 +15,7 @@ export default function OnboardingPage() {
   const isLast = step === SLIDES.length - 1
 
   const next = () => {
-    if (isLast) navigate('/auth/phone')
+    if (isLast) navigate('/home')
     else setStep(s => s + 1)
   }
 
@@ -23,7 +23,7 @@ export default function OnboardingPage() {
     <div className="flex flex-col h-full bg-white">
       {!isLast && (
         <div className="flex-none flex justify-end px-4 pt-3">
-          <button onClick={() => navigate('/auth/phone')} className="text-[13px] text-[#a9a59c] font-num">
+          <button onClick={() => navigate('/home')} className="text-[13px] text-[#a9a59c] font-num">
             건너뛰기
           </button>
         </div>

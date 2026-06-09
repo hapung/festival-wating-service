@@ -1,6 +1,6 @@
 const VARIANTS = {
-  primary:   'bg-[#e08a45] border-[#b56a2c] text-white shadow-[0_2px_0_#b56a2c]',
-  secondary: 'bg-white border-[#34322e] text-[#34322e]',
+  primary:   'bg-[#e08a45] border-[#b56a2c] text-white shadow-[0_3px_0_#b56a2c] active:translate-y-[2px] active:shadow-none',
+  secondary: 'bg-[#f5f3ef] border-[#d8d4cc] text-[#34322e] shadow-[0_2px_0_#d0ccc4] active:translate-y-[1px] active:shadow-none',
   ghost:     'bg-transparent border-[#d8d4cc] text-[#7c7972]',
   danger:    'bg-white border-[#E5483B] text-[#E5483B]',
   disabled:  'bg-[#efece6] border-[#e8e5de] text-[#a9a59c] opacity-65 cursor-not-allowed shadow-none',
