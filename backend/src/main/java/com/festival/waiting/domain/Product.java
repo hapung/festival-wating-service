@@ -32,11 +32,24 @@ public class Product {
     @Column(nullable = false)
     private Boolean isSpecialty = false; // 지역 특산품 여부
 
+    @Column(length = 255)
+    @lombok.Setter
+    private String imageUrl;
+
     public Product(Booth booth, String name, Integer price, String description, Boolean isSpecialty) {
         this.booth = booth;
         this.name = name;
         this.price = price;
         this.description = description;
         this.isSpecialty = isSpecialty;
+    }
+
+    public Product(Booth booth, String name, Integer price, String description, Boolean isSpecialty, String imageUrl) {
+        this.booth = booth;
+        this.name = name;
+        this.price = price;
+        this.description = description;
+        this.isSpecialty = isSpecialty;
+        this.imageUrl = imageUrl;
     }
 }

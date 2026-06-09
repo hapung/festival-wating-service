@@ -25,6 +25,9 @@ public class BoothDetailResponse {
     @Schema(description = "현재 실시간 대기 중인 전체 팀 수", example = "3")
     private final Integer currentWaitingCount;
 
+    @Schema(description = "부스 대표 이미지 URL 경로", example = "/uploads/abc.png")
+    private final String imageUrl;
+
     @Schema(description = "부스 메뉴 및 상품 정보 리스트")
     private final List<ProductDetailResponse> products;
 
@@ -32,13 +35,14 @@ public class BoothDetailResponse {
     private final String qrCodeUrl;
 
     public BoothDetailResponse(Long boothId, String name, String description, String locationDescription, 
-                               Integer currentWaitingCount, String qrCodeUrl, List<ProductDetailResponse> products) {
+                               Integer currentWaitingCount, String qrCodeUrl, String imageUrl, List<ProductDetailResponse> products) {
         this.boothId = boothId;
         this.name = name;
         this.description = description;
         this.locationDescription = locationDescription;
         this.currentWaitingCount = currentWaitingCount;
         this.qrCodeUrl = qrCodeUrl;
+        this.imageUrl = imageUrl;
         this.products = products;
     }
 
@@ -57,6 +61,7 @@ public class BoothDetailResponse {
                 booth.getLocationDescription(),
                 booth.getCurrentWaitingCount(),
                 qrCodeUrl,
+                booth.getImageUrl(),
                 prodResponses
         );
     }
@@ -79,12 +84,16 @@ public class BoothDetailResponse {
         @Schema(description = "지역 명물/특산물 해당 여부", example = "true")
         private final Boolean isSpecialty;
 
-        public ProductDetailResponse(Long productId, String name, Integer price, String description, Boolean isSpecialty) {
+        @Schema(description = "상품 이미지 URL 경로", example = "/uploads/def.png")
+        private final String imageUrl;
+
+        public ProductDetailResponse(Long productId, String name, Integer price, String description, Boolean isSpecialty, String imageUrl) {
             this.productId = productId;
             this.name = name;
             this.price = price;
             this.description = description;
             this.isSpecialty = isSpecialty;
+            this.imageUrl = imageUrl;
         }
 
         public static ProductDetailResponse from(com.festival.waiting.domain.Product product) {
@@ -93,7 +102,8 @@ public class BoothDetailResponse {
                     product.getName(),
                     product.getPrice(),
                     product.getDescription(),
-                    product.getIsSpecialty()
+                    product.getIsSpecialty(),
+                    product.getImageUrl()
             );
         }
     }

@@ -31,6 +31,15 @@ public class Booth {
     @Column(nullable = false, length = 150)
     private String locationDescription; // 부스 상세 위치 (예: '중앙 무대 옆 B-04')
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "merchant_id")
+    @lombok.Setter
+    private User merchant;
+
+    @Column(length = 255)
+    @lombok.Setter
+    private String imageUrl;
+
     @OneToMany(mappedBy = "booth", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Product> products = new ArrayList<>();
 
@@ -50,6 +59,17 @@ public class Booth {
         this.name = name;
         this.description = description;
         this.locationDescription = locationDescription;
+        this.waitingSequence = 0L;
+        this.currentWaitingCount = 0;
+    }
+
+    public Booth(Festival festival, String name, String description, String locationDescription, User merchant, String imageUrl) {
+        this.festival = festival;
+        this.name = name;
+        this.description = description;
+        this.locationDescription = locationDescription;
+        this.merchant = merchant;
+        this.imageUrl = imageUrl;
         this.waitingSequence = 0L;
         this.currentWaitingCount = 0;
     }

@@ -33,6 +33,11 @@ public class Festival {
     @Column(nullable = false)
     private LocalDate endDate;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organizer_id")
+    @lombok.Setter
+    private User organizer;
+
     // 모든 연관관계는 FetchType.LAZY 적용
     @OneToMany(mappedBy = "festival", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TouristSpot> touristSpots = new ArrayList<>();
@@ -46,5 +51,14 @@ public class Festival {
         this.location = location;
         this.startDate = startDate;
         this.endDate = endDate;
+    }
+
+    public Festival(String name, String description, String location, LocalDate startDate, LocalDate endDate, User organizer) {
+        this.name = name;
+        this.description = description;
+        this.location = location;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.organizer = organizer;
     }
 }

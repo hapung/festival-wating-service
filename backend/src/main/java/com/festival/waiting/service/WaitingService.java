@@ -33,6 +33,17 @@ public class WaitingService {
         Booth booth = boothRepository.findByIdWithPessimisticLock(boothId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 부스입니다. ID: " + boothId));
 
+        // [최종 합의 정책] 동일 축제 범위 내 최대 3개 부스 동시 대기 제한 검증
+        long activeCount = waitingRepository.countByPhoneNumberAndBoothFestivalIdAndStatusIn(
+                phoneNumber,
+                booth.getFestival().getId(),
+                List.of(WaitingStatus.WAITING, WaitingStatus.CALLED)
+        );
+        if (activeCount >= 3) {
+            log.warn("[웨이팅 차단] 고객 {}은 이미 동일 축제 내에 3개 부스 대기를 걸어 신청이 차단됩니다.", phoneNumber);
+            throw new IllegalArgumentException("동일 축제 내에서 동시에 대기할 수 있는 부스는 최대 3개까지만 가능합니다.");
+        }
+
         // 2. 대기 번호 및 실시간 대기 인원 증가 (Booth 엔티티 내 캡슐화 로직)
         Long assignedWaitingNumber = booth.issueWaitingNumber();
 
@@ -184,5 +195,32 @@ public class WaitingService {
                 waiting.sendNearAlert();
             }
         }
+    }
+
+    /**
+     * [고객] 특정 휴대폰 번호로 현재 특정 축제에서 대기(WAITING, CALLED) 상태인 전체 대기열 목록을 조회합니다. (대기 복원용)
+     */
+    @Transactional(readOnly = true)
+    public List<WaitingStatusResponse> getMyActiveWaitings(String phoneNumber, Long festivalId) {
+        log.info("[내 활성 대기 목록 조회] 전화번호: {}, 축제 ID: {}", phoneNumber, festivalId);
+        List<Waiting> activeWaitings = waitingRepository.findByPhoneNumberAndBoothFestivalIdAndStatusIn(
+                phoneNumber,
+                festivalId,
+                List.of(WaitingStatus.WAITING, WaitingStatus.CALLED)
+        );
+
+        return activeWaitings.stream()
+                .map(w -> {
+                    int aheadCount = 0;
+                    if (w.getStatus() == WaitingStatus.WAITING) {
+                        aheadCount = (int) waitingRepository.countByBoothIdAndStatusAndWaitingNumberLessThan(
+                                w.getBooth().getId(),
+                                WaitingStatus.WAITING,
+                                w.getWaitingNumber()
+                        );
+                    }
+                    return WaitingStatusResponse.of(w, aheadCount);
+                })
+                .collect(java.util.stream.Collectors.toList());
     }
 }

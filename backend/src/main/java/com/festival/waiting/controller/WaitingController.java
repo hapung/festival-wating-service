@@ -27,15 +27,15 @@ public class WaitingController {
 
     @Operation(
         summary = "[사용자] 대기열 등록",
-        description = "사용자가 특정 축제 부스에 현장 대기를 신청할 때 호출합니다. 비관적 락을 통해 고유한 대기 번호(waitingNumber)가 중복 없이 안전하게 1씩 순차 부여되며, 등록 후 발급 번호와 실시간 대기 인원수가 반환됩니다."
+        description = "사용자가 특정 축제 부스에 현장 대기를 신청할 때 호출합니다. 손님 JWT 토큰(AuthenticationPrincipal)의 전화번호 정보를 활용하여 안전하게 대기를 신청합니다. 동일 축제 내 동시 대기는 최대 3개로 제한됩니다."
     )
     @PostMapping("/api/booths/{boothId}/waitings")
     public ResponseEntity<WaitingResponse> registerWaiting(
             @Parameter(description = "대기를 신청하려는 축제 부스의 고유 식별 ID", example = "1")
             @PathVariable("boothId") Long boothId,
-            @RequestBody WaitingRegisterRequest request
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.User principal
     ) {
-        Waiting waiting = waitingService.registerWaiting(boothId, request.getPhoneNumber());
+        Waiting waiting = waitingService.registerWaiting(boothId, principal.getUsername());
         return ResponseEntity.ok(WaitingResponse.from(waiting));
     }
 
@@ -107,5 +107,18 @@ public class WaitingController {
     @GetMapping("/api/config/solapi")
     public ResponseEntity<java.util.Map<String, Object>> getSolapiConfig() {
         return ResponseEntity.ok(notificationService.getConfig());
+    }
+
+    @Operation(
+        summary = "[사용자] 내 활성 대기 목록 조회 (상태 복원용)",
+        description = "손님 토큰의 인증 정보를 통해 해당 축제(festivalId) 내에 현재 대기 중이거나 호출(WAITING, CALLED) 상태인 나의 대기열 목록을 조회합니다. 새로고침 시 화면 복원에 활용됩니다."
+    )
+    @GetMapping("/api/waitings/my-active")
+    public ResponseEntity<java.util.List<WaitingStatusResponse>> getMyActiveWaitings(
+            @RequestParam("festivalId") Long festivalId,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.User principal
+    ) {
+        java.util.List<WaitingStatusResponse> activeWaitings = waitingService.getMyActiveWaitings(principal.getUsername(), festivalId);
+        return ResponseEntity.ok(activeWaitings);
     }
 }

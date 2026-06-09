@@ -34,6 +34,7 @@ public class FestivalService {
     private final BoothRepository boothRepository;
     private final ProductRepository productRepository;
     private final ExternalApiService externalApiService;
+    private final com.festival.waiting.repository.UserRepository userRepository;
 
     /**
      * 위치 및 사용가능 시간을 기준으로 축제를 추천하고, 해당 축제의 주변 관광지 목록도 가져옵니다.
@@ -164,13 +165,20 @@ public class FestivalService {
      * [상인] 자신의 상점(부스)과 메뉴 리스트를 축제에 등록합니다.
      */
     @Transactional
-    public Booth registerBooth(BoothRegisterRequest request) {
-        log.info("[상인 부스 등록] 축제 ID: {}, 부스명: {}", request.getFestivalId(), request.getName());
+    public Booth registerBooth(BoothRegisterRequest request, String merchantUsername) {
+        log.info("[상인 부스 등록] 축제 ID: {}, 상인 ID: {}, 부스명: {}", request.getFestivalId(), merchantUsername, request.getName());
+
+        com.festival.waiting.domain.User merchant = userRepository.findByUsername(merchantUsername)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상인 계정입니다: " + merchantUsername));
+
+        if (merchant.getRole() != com.festival.waiting.domain.User.Role.ROLE_MERCHANT || !merchant.isApproved()) {
+            throw new IllegalArgumentException("승인 완료된 상인(MERCHANT)만 부스를 등록할 수 있습니다. 주최측의 승인을 확인해 주세요.");
+        }
 
         Festival festival = festivalRepository.findById(request.getFestivalId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 축제 ID입니다: " + request.getFestivalId()));
 
-        Booth booth = new Booth(festival, request.getName(), request.getDescription(), request.getLocationDescription());
+        Booth booth = new Booth(festival, request.getName(), request.getDescription(), request.getLocationDescription(), merchant, request.getImageUrl());
         Booth savedBooth = boothRepository.save(booth);
 
         if (request.getProducts() != null) {
@@ -180,7 +188,8 @@ public class FestivalService {
                         prodDto.getName(),
                         prodDto.getPrice(),
                         prodDto.getDescription(),
-                        prodDto.getIsSpecialty()
+                        prodDto.getIsSpecialty(),
+                        prodDto.getImageUrl()
                 );
                 productRepository.save(product);
             }
@@ -226,5 +235,22 @@ public class FestivalService {
     public int getSpotCongestion(String spotName) {
         log.info("[관광지 단독 혼잡도 조회] 관광지명: {}", spotName);
         return externalApiService.getTouristSpotConcentrationRate(spotName);
+    }
+
+    /**
+     * [주최측] 축제를 수동으로 신규 등록합니다.
+     */
+    @Transactional
+    public Festival createFestival(String name, String description, String location, LocalDate startDate, LocalDate endDate, String organizerUsername) {
+        log.info("[축제 수동 등록] 주최자 ID: {}, 축제명: {}", organizerUsername, name);
+        com.festival.waiting.domain.User organizer = userRepository.findByUsername(organizerUsername)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주최자입니다: " + organizerUsername));
+
+        if (organizer.getRole() != com.festival.waiting.domain.User.Role.ROLE_ORGANIZER || !organizer.isApproved()) {
+            throw new IllegalArgumentException("승인 완료된 주최자만 축제를 등록할 수 있습니다.");
+        }
+
+        Festival festival = new Festival(name, description, location, startDate, endDate, organizer);
+        return festivalRepository.save(festival);
     }
 }

@@ -54,13 +54,14 @@ public class FestivalController {
 
     @Operation(
         summary = "[상인] 부스 및 판매 상품(메뉴) 등록",
-        description = "상인이 자신의 부스 이름, 입점 구역 위치 설명과 메뉴 명판(가격, 특산품 여부 포함)을 등록하여 축제 도메인에 상점을 입점시킵니다."
+        description = "상인이 자신의 부스 이름, 입점 구역 위치 설명과 메뉴 명판(가격, 특산품 여부 및 사진 포함)을 등록하여 축제 도메인에 상점을 입점시킵니다. (승인받은 상인 토큰 필요)"
     )
     @PostMapping("/api/booths")
     public ResponseEntity<BoothDetailResponse> registerBooth(
-            @RequestBody BoothRegisterRequest request
+            @RequestBody BoothRegisterRequest request,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.User principal
     ) {
-        Booth booth = festivalService.registerBooth(request);
+        Booth booth = festivalService.registerBooth(request, principal.getUsername());
         return ResponseEntity.ok(BoothDetailResponse.from(booth));
     }
 

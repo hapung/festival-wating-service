@@ -2,89 +2,135 @@
 
 ## 1. API 주소 및 공통 규격
 *   **개발용 서버 주소**: `http://localhost:8080`
-*   **HTTP Header**: `Content-Type: application/json`
+*   **HTTP Header**:
+    *   `Content-Type: application/json`
+    *   `Authorization: Bearer <JWT_TOKEN>` (인증 권한이 필요한 API 호출 시 반드시 첨부해야 합니다.)
 
 ---
 
 ## 2. API 상세 명세
 
-### 1) [GET] 캐싱된 전체 축제 목록 조회
-*   **Endpoint**: `/api/festivals`
-*   **설명**: 시스템 시작 시점에 로컬 DB에 자동 로딩되어 있는 올해(2026년) 전국 16개 대표 축제 리스트를 가져옵니다.
-*   **Request**: 없음
-*   **Response (200 OK)**:
+### 1) [POST] 주최자 및 상인 회원가입
+*   **Endpoint**: `/api/auth/signup`
+*   **설명**: 신규 주최자(ROLE_ORGANIZER) 또는 상인(ROLE_MERCHANT) 회원으로 등록합니다. 가입 직후에는 **미승인(Pending)** 상태이며, 상위 권한자의 승인을 받아야 토큰 활성화 및 리소스 등록이 가능해집니다.
+*   **Request Body (JSON)**:
     ```json
-    [
-      {
-        "festivalId": 1,
-        "name": "양평 용문산 산나물 축제",
-        "description": "양평 용문산 산나물 축제 축제입니다.",
-        "location": "경기도 양평군 용문면 용문산로 110-2",
-        "startDate": "2026-05-01",
-        "endDate": "2026-05-15"
-      },
-      {
-        "festivalId": 2,
-        "name": "강릉 단오제",
-        "description": "강릉 단오제 축제입니다.",
-        "location": "강원도 강릉시 단오장길 1",
-        "startDate": "2026-06-01",
-        "endDate": "2026-06-15"
-      }
-    ]
+    {
+      "username": "merchant_kim",
+      "password": "password1234",
+      "name": "김상인",
+      "phoneNumber": "01099998888",
+      "role": "ROLE_MERCHANT"
+    }
+    ```
+*   **Response (200 OK)**:
+    ```text
+    김상인님 회원가입이 완료되었습니다. (최상위 운영자/주최자의 최종 승인을 기다려주세요.)
     ```
 
 ---
 
-### 2) [GET] 위치 기반 축제 추천 및 인근 관광지 혼잡도 조회
-*   **Endpoint**: `/api/festivals/recommend`
-*   **설명**: 사용자의 현 위치를 기반으로 반경 내 축제들과 축제장 근처 관광지의 실시간 혼잡률을 함께 조회합니다. (날짜 필터 없음)
-*   **Request Parameters**:
-    | 파라미터명 | 타입 | 필수 여부 | 설명 | 예시 |
-    | :--- | :---: | :---: | :--- | :--- |
-    | `address` | String | X | 사용자의 한글 지명/주소 | `"양평군"` |
-    | `maxDistanceKm` | Double | X | 추천 반경 제한 (기본 50km) | `30.0` |
-    | `latitude` | Double | X | 사용자 현재 위도 | `37.5665` |
-    | `longitude` | Double | X | 사용자 현재 경도 | `126.9780` |
+### 2) [POST] 일반 로그인 (주최측, 상인, 어드민)
+*   **Endpoint**: `/api/auth/login`
+*   **설명**: 아이디와 패스워드로 로그인하여 API 인증 및 권한 확인에 사용할 JWT 토큰을 획득합니다.
+*   **Request Body (JSON)**:
+    ```json
+    {
+      "username": "admin",
+      "password": "admin1234"
+    }
+    ```
 *   **Response (200 OK)**:
     ```json
-    [
-      {
-        "festivalId": 1,
-        "name": "양평 용문산 산나물 축제",
-        "location": "경기도 양평군 용문면 용문산로 110-2",
-        "startDate": "2026-05-01",
-        "endDate": "2026-05-15",
-        "distanceKm": 12.3,
-        "touristSpots": [
-          {
-            "spotId": 1,
-            "name": "용문사 천년 은행나무",
-            "description": "용문사 천년 은행나무 주변 관광지입니다.",
-            "location": "경기도 양평군 용문면 용문산로 782",
-            "distanceKm": 1.2,
-            "congestionRate": 42,
-            "level": "쾌적"
-          },
-          {
-            "spotId": 2,
-            "name": "들꽃수목원",
-            "description": "들꽃수목원 주변 관광지입니다.",
-            "location": "경기도 양평군 양평읍 수목원길 16",
-            "distanceKm": 2.5,
-            "congestionRate": 85,
-            "level": "혼잡"
-          }
-        ]
-      }
-    ]
+    {
+      "token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsIm..."
+    }
     ```
 
 ---
 
-### 3) [POST] 상인 부스 및 디지털 메뉴판 등록 (상인 어드민)
+### 3) [POST] 손님 무가입 번호인증 (토큰 발급)
+*   **Endpoint**: `/api/auth/customer-token`
+*   **설명**: 축제 방문 손님이 아이디 비밀번호 가입 절차 없이 휴대폰 번호 입력 및 인증(시뮬레이터)을 진행하면, 해당 축제 범위 내에서 24시간 동안 유효한 손님 권한의 JWT 토큰을 반환합니다.
+*   **Request Body (JSON)**:
+    ```json
+    {
+      "phoneNumber": "01012345678",
+      "festivalId": 1
+    }
+    ```
+*   **Response (200 OK)**:
+    ```json
+    {
+      "token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIwMTAxMjM0..."
+    }
+    ```
+
+---
+
+### 4) [POST] 이미지 파일 업로드
+*   **Endpoint**: `/api/files/upload`
+*   **설명**: 부스 이미지나 메뉴판 사진을 Multipart 형식으로 전송하여 저장하고, 정적 서비스 URL 경로를 반환받습니다.
+*   **Request (Multipart/form-data)**:
+    *   `file`: 실물 이미지 파일 (MultipartFile)
+*   **Response (200 OK)**:
+    ```json
+    {
+      "imageUrl": "/uploads/8f52de28-56f8-4bfa-a3fb-b09a5b3a4a0c.png"
+    }
+    ```
+
+---
+
+### 5) [POST] 최상위 어드민의 주최자 계정 승인
+*   **Endpoint**: `/api/admin/organizers/{organizerId}/approve`
+*   **설명**: 최상위 운영자(`ROLE_ADMIN` 토큰 필요)가 새로 가입 신청한 주최측 계정을 승인합니다.
+*   **Response (200 OK)**:
+    ```text
+    주최자 계정이 승인되었습니다. ID: 2
+    ```
+
+---
+
+### 6) [POST] 승인 완료된 주최자의 축제 등록
+*   **Endpoint**: `/api/organizer/festivals`
+*   **설명**: 승인 완료된 주최측(`ROLE_ORGANIZER` 토큰 필요) 권한으로 신규 축제를 개최 등록합니다.
+*   **Request Body (JSON)**:
+    ```json
+    {
+      "name": "강릉 단오제 2026",
+      "description": "유네스코 인류무형문화유산 강릉단오제",
+      "location": "강원도 강릉시 단오장길 1",
+      "startDate": "2026-06-01",
+      "endDate": "2026-06-15"
+    }
+    ```
+*   **Response (200 OK)**:
+    ```json
+    {
+      "festivalId": 12,
+      "name": "강릉 단오제 2026",
+      "location": "강원도 강릉시 단오장길 1",
+      "startDate": "2026-06-01",
+      "endDate": "2026-06-15"
+    }
+    ```
+
+---
+
+### 7) [POST] 주최자의 상인 입점 승인
+*   **Endpoint**: `/api/organizer/merchants/{merchantId}/approve`
+*   **설명**: 주최측(`ROLE_ORGANIZER` 토큰 필요)이 자신의 축제에 입점을 신청한 상인 계정을 승인(허용)합니다.
+*   **Response (200 OK)**:
+    ```text
+    상인 계정이 승인되었습니다. ID: 3
+    ```
+
+---
+
+### 8) [POST] 상인 부스 및 디지털 메뉴판 등록
 *   **Endpoint**: `/api/booths`
-*   **설명**: 상인이 점포 정보와 메뉴들을 시스템에 등록하고 랜딩 QR코드를 발급받습니다.
+*   **설명**: 승인 완료된 상인(`ROLE_MERCHANT` 토큰 필요) 권한으로 본인의 부스를 생성하고 판매 메뉴를 등록합니다. 부스 및 상품 등록 시 업로드된 `imageUrl` 경로를 대입합니다.
 *   **Request Body (JSON)**:
     ```json
     {
@@ -92,18 +138,14 @@
       "name": "양평 산채 비빔밥집",
       "description": "용문산에서 직접 채취한 나물로 만드는 비빔밥 전문점",
       "locationDescription": "축제 메인광장 먹거리 장터 12호",
+      "imageUrl": "/uploads/booth_main.png",
       "products": [
         {
           "name": "산나물 비빔밥",
           "price": 9000,
           "description": "5가지 산나물이 들어간 웰빙 비빔밥",
-          "isSpecialty": true
-        },
-        {
-          "name": "감자전",
-          "price": 7000,
-          "description": "감자를 직접 강판에 갈아 구운 겉바속촉 감자전",
-          "isSpecialty": false
+          "isSpecialty": true,
+          "imageUrl": "/uploads/product_bibim.png"
         }
       ]
     }
@@ -111,26 +153,21 @@
 *   **Response (200 OK)**:
     ```json
     {
-      "id": 1,
+      "id": 5,
       "name": "양평 산채 비빔밥집",
       "description": "용문산에서 직접 채취한 나물로 만드는 비빔밥 전문점",
       "locationDescription": "축제 메인광장 먹거리 장터 12호",
       "currentWaitingCount": 0,
-      "qrCodeUrl": "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=http://localhost:8080/booth.html?boothId=1",
+      "imageUrl": "/uploads/booth_main.png",
+      "qrCodeUrl": "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=http://localhost:8080/booth.html?boothId=5",
       "products": [
         {
-          "id": 1,
+          "id": 10,
           "name": "산나물 비빔밥",
           "price": 9000,
           "description": "5가지 산나물이 들어간 웰빙 비빔밥",
-          "isSpecialty": true
-        },
-        {
-          "id": 2,
-          "name": "감자전",
-          "price": 7000,
-          "description": "감자를 직접 강판에 갈아 구운 겉바속촉 감자전",
-          "isSpecialty": false
+          "isSpecialty": true,
+          "imageUrl": "/uploads/product_bibim.png"
         }
       ]
     }
@@ -138,61 +175,9 @@
 
 ---
 
-### 4) [GET] 특정 축제 내 전체 부스 실시간 웨이팅 현황 조회
-*   **Endpoint**: `/api/festivals/{festivalId}/booths`
-*   **설명**: 축제 상세 탭에서 입점해 있는 전체 부스 목록과 현재 실시간 대기 인원수를 노출합니다.
-*   **Response (200 OK)**:
-    ```json
-    [
-      {
-        "id": 1,
-        "name": "양평 산채 비빔밥집",
-        "description": "나물 비빔밥 전문점",
-        "locationDescription": "먹거리 장터 12호",
-        "currentWaitingCount": 3,
-        "qrCodeUrl": "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=http://localhost:8080/booth.html?boothId=1"
-      }
-    ]
-    ```
-
----
-
-### 5) [GET] QR 코드 진입용 부스 상세 및 메뉴판 조회
-*   **Endpoint**: `/api/booths/{boothId}`
-*   **설명**: 모바일 단말기로 QR코드를 찍고 들어왔을 때, `boothId`를 기반으로 메뉴판과 상점 소개 정보를 렌더링합니다.
-*   **Response (200 OK)**:
-    ```json
-    {
-      "id": 1,
-      "name": "양평 산채 비빔밥집",
-      "description": "용문산에서 직접 채취한 나물로 만드는 비빔밥 전문점",
-      "locationDescription": "축제 메인광장 먹거리 장터 12호",
-      "currentWaitingCount": 3,
-      "qrCodeUrl": "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=http://localhost:8080/booth.html?boothId=1",
-      "products": [
-        {
-          "id": 1,
-          "name": "산나물 비빔밥",
-          "price": 9000,
-          "description": "5가지 산나물이 들어간 웰빙 비빔밥",
-          "isSpecialty": true
-        }
-      ]
-    }
-    ```
-
----
-
-### 6) [POST] 모바일 실시간 대기 등록 신청 (손님)
-*   **Endpoint**: `/api/waitings`
-*   **설명**: 모바일 페이지에서 휴대폰 번호를 입력해 실시간 대기 접수를 요청합니다. (Solapi 접수 완료 문자 자동 트리거)
-*   **Request Body (JSON)**:
-    ```json
-    {
-      "boothId": 1,
-      "phoneNumber": "01012345678"
-    }
-    ```
+### 9) [POST] 모바일 실시간 대기 등록 신청
+*   **Endpoint**: `/api/booths/{boothId}/waitings`
+*   **설명**: 손님 전용 JWT 토큰(`ROLE_CUSTOMER` 토큰 필요)을 담아 대기를 신청합니다. 토큰 내부의 전화번호가 자동으로 등록되며, **한 축제 내에서 동시에 가질 수 있는 대기열 개수는 최대 3개**로 제약됩니다. (3개 초과 시 400 에러)
 *   **Response (200 OK)**:
     ```json
     {
@@ -206,66 +191,58 @@
 
 ---
 
-### 7) [GET] 손님 실시간 순서/상태 폴링 조회 (4초 간격)
-*   **Endpoint**: `/api/waitings/{waitingId}/status`
-*   **설명**: 내 앞에 남은 대기자 팀 수와 호출 여부(`status`)를 주기적으로 갱신하여 보여줍니다.
-*   **Response (200 OK)**:
-    ```json
-    {
-      "waitingId": 101,
-      "waitingNumber": 4,
-      "status": "WAITING",
-      "waitingTeamsAhead": 1,
-      "phoneNumber": "01012345678"
-    }
-    ```
-    *   *참고: 만약 순서가 되어 상인이 부르면 `status` 필드가 `"CALLED"`로 변경되어 반환됩니다.*
-
----
-
-### 8) [POST] 대기 고객 호출 (상인 제어)
-*   **Endpoint**: `/api/waitings/{waitingId}/call`
-*   **설명**: 상인이 대기 번호표 순서에 맞추어 손님을 호출합니다. (Solapi 호출 알림 문자 발송)
-*   **Response (200 OK)**:
-    ```json
-    {
-      "waitingId": 101,
-      "status": "CALLED"
-    }
-    ```
-
----
-
-### 9) [POST] 대기 고객 입장 처리 / 취소 처리 (상인 제어)
-*   **입장 완료 처리**: `POST /api/waitings/{waitingId}/complete`
-*   **노쇼 및 대기 취소**: `POST /api/waitings/{waitingId}/cancel`
-*   **Response (200 OK)**:
-    ```json
-    {
-      "waitingId": 101,
-      "status": "COMPLETED"  // 혹은 "CANCELLED"
-    }
-    ```
-
----
-
-### 10) [GET] ennoia AI 자연어 큐레이션 통합 API (AI 파트 연동)
-*   **Endpoint**: `/api/ai/curate`
-*   **설명**: ennoia AI 큐레이터가 자연어 문장을 전달받아 목적지 매핑 정보 및 추천 사유를 반환합니다.
+### 10) [GET] 내 활성 대기 목록 조회 (손님 세션 복원)
+*   **Endpoint**: `/api/waitings/my-active`
+*   **설명**: 손님 전용 JWT 토큰을 기반으로 해당 축제(`festivalId`) 내에서 내가 현재 대기 중인 모든 부스의 실시간 대기 정보(내 앞 대기자수 포함)를 배열로 가져옵니다. 새로고침 시 화면 상태 복원에 쓰입니다.
 *   **Query Parameters**:
-    *   `query` (String, Required): 사용자의 질문
+    *   `festivalId` (Long, Required): 축제 고유 식별 ID
 *   **Response (200 OK)**:
     ```json
-    {
-      "query": "사람 많은 곳 피해서 한적하게 힐링할 수 있는 관광지랑 축제 알려줘",
-      "parsedLocation": "강릉",
-      "recommendedSpots": [
-        {
-          "name": "경포 가시연습지",
-          "congestionRate": 28,
-          "level": "쾌적"
-        }
-      ],
-      "aiRecommendationReason": "현재 강릉 단오제 축제 인근에서 혼잡도가 28%(쾌적)로 가장 한적한 '경포 가시연습지' 주변 코스를 추천합니다."
-    }
+    [
+      {
+        "waitingId": 101,
+        "waitingNumber": 4,
+        "status": "WAITING",
+        "waitingTeamsAhead": 1,
+        "phoneNumber": "01012345678"
+      }
+    ]
     ```
+
+---
+
+### 11) [GET] 캐싱된 전체 축제 목록 조회
+*   **Endpoint**: `/api/festivals`
+*   **Response (200 OK)**: 올해 등록된 16개 축제의 목록을 전체 조회합니다.
+
+---
+
+### 12) [GET] 위치 기반 축제 추천 및 인근 관광지 혼잡도 조회
+*   **Endpoint**: `/api/festivals/recommend`
+*   **Query Parameters**: `address`, `maxDistanceKm`, `latitude`, `longitude`
+
+---
+
+### 13) [GET] 특정 축제 내 전체 부스 실시간 웨이팅 현황 조회
+*   **Endpoint**: `/api/festivals/{festivalId}/booths`
+
+---
+
+### 14) [GET] QR 코드 진입용 부스 상세 및 메뉴판 조회
+*   **Endpoint**: `/api/booths/{boothId}`
+
+---
+
+### 15) [GET] 손님 실시간 순서/상태 폴링 조회 (4초 간격)
+*   **Endpoint**: `/api/waitings/{waitingId}/status`
+
+---
+
+### 16) [POST] 대기 고객 호출 (상인 제어)
+*   **Endpoint**: `/api/waitings/{waitingId}/call` (상인 토큰 필요)
+
+---
+
+### 17) [POST] 대기 고객 입장 완료 / 취소 처리 (상인 제어)
+*   **입장 완료**: `POST /api/waitings/{waitingId}/complete` (상인 토큰 필요)
+*   **취소/노쇼**: `POST /api/waitings/{waitingId}/cancel` (상인 토큰 필요)

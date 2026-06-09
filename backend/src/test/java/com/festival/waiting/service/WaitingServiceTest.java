@@ -55,6 +55,7 @@ class WaitingServiceTest {
     void registerWaitingSuccess() {
         // given
         when(boothRepository.findByIdWithPessimisticLock(1L)).thenReturn(Optional.of(booth));
+        when(waitingRepository.countByPhoneNumberAndBoothFestivalIdAndStatusIn(any(), any(), any())).thenReturn(0L);
         when(waitingRepository.save(any(Waiting.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
@@ -65,5 +66,21 @@ class WaitingServiceTest {
         assertThat(booth.getCurrentWaitingCount()).isEqualTo(1);
         verify(boothRepository, times(1)).findByIdWithPessimisticLock(1L);
         verify(waitingRepository, times(1)).save(any(Waiting.class));
+    }
+
+    @Test
+    @DisplayName("동일 축제 내에서 동시 대기가 3개 이상인 경우 추가 등록 신청 시 실패하고 예외를 발생해야 합니다.")
+    void registerWaitingFailsWhenLimitExceeded() {
+        // given
+        when(boothRepository.findByIdWithPessimisticLock(1L)).thenReturn(Optional.of(booth));
+        when(waitingRepository.countByPhoneNumberAndBoothFestivalIdAndStatusIn(any(), any(), any())).thenReturn(3L);
+
+        // when & then
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> 
+                waitingService.registerWaiting(1L, "010-1234-5678")
+        ).isInstanceOf(IllegalArgumentException.class)
+         .hasMessageContaining("동일 축제 내에서 동시에 대기할 수 있는 부스는 최대 3개까지만 가능합니다.");
+
+        verify(waitingRepository, never()).save(any(Waiting.class));
     }
 }

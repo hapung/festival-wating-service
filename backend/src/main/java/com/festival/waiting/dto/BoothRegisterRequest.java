@@ -24,6 +24,9 @@ public class BoothRegisterRequest {
     @Schema(description = "축제 현장 내 부스의 물리적 입점 위치 (예: '먹거리 장터 B-12 구역')", example = "먹거리 존 B-12", requiredMode = Schema.RequiredMode.REQUIRED)
     private String locationDescription;
 
+    @Schema(description = "부스 대표 이미지 URL 경로 (업로드 API 반환 경로)", example = "/uploads/abc.png")
+    private String imageUrl;
+
     @Schema(description = "부스에서 판매할 메뉴(메뉴판) 및 지역 특산물 목록입니다.")
     private List<ProductDto> products;
 
@@ -42,5 +45,8 @@ public class BoothRegisterRequest {
 
         @Schema(description = "지역의 대표 명물/특산물 해당 여부", example = "true")
         private Boolean isSpecialty = false;
+
+        @Schema(description = "상품 이미지 URL 경로", example = "/uploads/def.png")
+        private String imageUrl;
     }
 }
