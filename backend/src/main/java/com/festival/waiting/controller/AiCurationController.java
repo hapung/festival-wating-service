@@ -27,7 +27,7 @@ public class AiCurationController {
         summary = "[AI 에이전트 연동] 실시간 대기 정보를 반영한 부스 추천",
         description = "사용자의 자연어 질의(예: '사람이 적고 특산품이 들어간 메뉴를 먹고 싶어')를 받아 실시간 대기 수(currentWaitingCount)와 특산품 판매 여부(isSpecialty)를 기반으로 최적의 부스를 선별하여 추천 리스트를 정렬해 반환합니다."
     )
-    @PostMapping("/api/ai/curate-booths")
+    @PostMapping("/api/ai/curate")
     public ResponseEntity<List<BoothDetailResponse>> curateBooths(
             @RequestBody AiCurationRequest request
     ) {

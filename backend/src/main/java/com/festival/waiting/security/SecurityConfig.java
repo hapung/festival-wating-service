@@ -35,6 +35,7 @@ public class SecurityConfig {
                 // 공개 API 경로
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/config/kakao-key").permitAll()
+                .requestMatchers("/api/config/solapi").permitAll()
                 .requestMatchers("/api/festivals", "/api/festivals/recommend").permitAll()
                 .requestMatchers("/api/festivals/*/booths").permitAll()
                 .requestMatchers("/api/booths/*").permitAll()

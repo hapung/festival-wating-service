@@ -53,6 +53,19 @@ public class WaitingController {
     }
 
     @Operation(
+        summary = "[상인] 특정 대기자 지정 호출",
+        description = "대기 고유 식별 ID(waitingId)를 받아 해당 손님을 직접 지목하여 호출(CALLED) 상태로 변경하고 호출 알림톡/SMS를 발송합니다."
+    )
+    @PostMapping("/api/waitings/{waitingId}/call")
+    public ResponseEntity<WaitingResponse> callWaiting(
+            @Parameter(description = "호출하려는 대기 내역 고유 식별 ID", example = "102")
+            @PathVariable("waitingId") Long waitingId
+    ) {
+        Waiting waiting = waitingService.callWaitingById(waitingId);
+        return ResponseEntity.ok(WaitingResponse.from(waiting));
+    }
+
+    @Operation(
         summary = "[상인] 대기 완료 처리",
         description = "손님이 부스를 직접 방문하여 서비스를 원활히 이용하기 시작했을 때 호출합니다. 이 작업이 실행되면 해당 손님의 대기 상태가 방문완료(COMPLETED)로 전환되고 부스의 실시간 대기 팀 수(currentWaitingCount)가 1 감소합니다."
     )

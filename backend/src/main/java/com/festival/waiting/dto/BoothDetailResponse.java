@@ -55,7 +55,14 @@ public class BoothDetailResponse {
                 .map(ProductDetailResponse::from)
                 .collect(Collectors.toList());
 
-        String targetUrl = "http://localhost:8080/booth.html?boothId=" + booth.getId();
+        String baseUrl = "http://localhost:8080";
+        try {
+            baseUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        } catch (Exception e) {
+            // Fallback for tests or non-web contexts
+        }
+
+        String targetUrl = baseUrl + "/booth.html?boothId=" + booth.getId();
         String qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + targetUrl;
 
         return new BoothDetailResponse(
