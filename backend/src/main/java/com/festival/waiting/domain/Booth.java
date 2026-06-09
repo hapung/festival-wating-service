@@ -92,4 +92,12 @@ public class Booth {
             this.currentWaitingCount--;
         }
     }
+
+    public void updateInfo(Festival festival, String name, String description, String locationDescription, String imageUrl) {
+        this.festival = festival;
+        this.name = name;
+        this.description = description;
+        this.locationDescription = locationDescription;
+        this.imageUrl = imageUrl;
+    }
 }

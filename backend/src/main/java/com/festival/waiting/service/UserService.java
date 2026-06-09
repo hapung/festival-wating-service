@@ -47,8 +47,8 @@ public class UserService implements CommandLineRunner {
             throw new IllegalArgumentException("이미 사용 중인 아이디입니다: " + username);
         }
 
-        // 주최측, 상인은 기본 미승인 상태로 시작
-        boolean isApproved = false;
+        // 데모 시연 및 로컬 테스트 편의를 위해 가입 즉시 자동 승인 상태(true)로 생성합니다.
+        boolean isApproved = true;
         User newUser = new User(
                 username,
                 passwordEncoder.encode(password),
