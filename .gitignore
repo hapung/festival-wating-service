@@ -26,3 +26,4 @@ build/
 
 # Backend config
 backend/src/main/resources/application.yml
+backend/uploads/
