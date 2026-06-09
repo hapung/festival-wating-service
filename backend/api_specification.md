@@ -6,9 +6,18 @@
     *   `Content-Type: application/json`
     *   `Authorization: Bearer <JWT_TOKEN>` (인증 권한이 필요한 API 호출 시 반드시 첨부해야 합니다.)
 
+## 2. 서비스 워크플로우 및 계층 구조
+본 시스템은 다음과 같은 승인 파이프라인을 거쳐 리소스(축제, 부스)를 생성합니다.
+
+1. **[최상위 관리자]**: 기본 생성된 `admin` 계정
+2. **[주최측 승인]**: `ROLE_ORGANIZER`로 가입한 계정을 `admin`이 승인 (`POST /api/admin/organizers/{id}/approve`)
+3. **[축제 개최]**: 승인된 주최측이 새로운 축제를 동적으로 생성 (`POST /api/organizer/festivals`)
+4. **[상인 승인]**: `ROLE_MERCHANT`로 가입한 계정을 주최측이 승인 (`POST /api/organizer/merchants/{id}/approve`)
+5. **[부스 등록]**: 승인된 상인이 주최측이 만든 '축제'에 본인의 부스와 메뉴판을 등록 (`POST /api/booths`)
+
 ---
 
-## 2. API 상세 명세
+## 3. API 상세 명세
 
 ### 1) [POST] 주최자 및 상인 회원가입
 *   **Endpoint**: `/api/auth/signup`
@@ -211,9 +220,10 @@
 
 ---
 
-### 11) [GET] 캐싱된 전체 축제 목록 조회
+### 11) [GET] 동적 축제 목록 조회
 *   **Endpoint**: `/api/festivals`
-*   **Response (200 OK)**: 올해 등록된 16개 축제의 목록을 전체 조회합니다.
+*   **설명**: 주최측이 동적으로 개최한 축제 및 기존 캐싱된 축제들의 목록을 모두 조회합니다. 상인이 부스를 등록할 때 소속될 축제를 선택하기 위해 호출됩니다.
+*   **Response (200 OK)**: 축제 목록 배열
 
 ---
 

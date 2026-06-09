@@ -19,8 +19,10 @@ logs/
 
 # Claude Code
 .claude/
-
 # Gradle, build & archives
 .gradle/
 build/
 *.tar.gz
+
+# Backend config
+backend/src/main/resources/application.yml

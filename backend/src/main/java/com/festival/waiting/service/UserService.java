@@ -70,6 +70,10 @@ public class UserService implements CommandLineRunner {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
+        if (!user.isApproved()) {
+            throw new IllegalArgumentException("아직 승인되지 않은 계정입니다. 관리자의 승인을 기다려 주세요.");
+        }
+
         return jwtTokenProvider.createToken(user.getUsername(), user.getRole().name());
     }
 

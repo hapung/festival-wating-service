@@ -174,7 +174,7 @@ public class FestivalService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상인 계정입니다: " + merchantUsername));
 
         if (merchant.getRole() != com.festival.waiting.domain.User.Role.ROLE_MERCHANT || !merchant.isApproved()) {
-            throw new IllegalArgumentException("승인 완료된 상인(MERCHANT)만 부스를 등록할 수 있습니다. 주최측의 승인을 확인해 주세요.");
+            throw new IllegalArgumentException("승인 완료된 상인만 부스를 등록할 수 있습니다. 주최측의 승인을 확인해 주세요.");
         }
 
         Festival festival = festivalRepository.findById(request.getFestivalId())
