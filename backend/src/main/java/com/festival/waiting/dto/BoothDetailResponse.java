@@ -28,6 +28,9 @@ public class BoothDetailResponse {
     @Schema(description = "부스 대표 이미지 URL 경로", example = "/uploads/abc.png")
     private final String imageUrl;
 
+    @Schema(description = "부스가 소속된 축제의 고유 식별 ID", example = "1")
+    private final Long festivalId;
+
     @Schema(description = "부스 메뉴 및 상품 정보 리스트")
     private final List<ProductDetailResponse> products;
 
@@ -35,7 +38,7 @@ public class BoothDetailResponse {
     private final String qrCodeUrl;
 
     public BoothDetailResponse(Long boothId, String name, String description, String locationDescription, 
-                               Integer currentWaitingCount, String qrCodeUrl, String imageUrl, List<ProductDetailResponse> products) {
+                               Integer currentWaitingCount, String qrCodeUrl, String imageUrl, Long festivalId, List<ProductDetailResponse> products) {
         this.boothId = boothId;
         this.name = name;
         this.description = description;
@@ -43,6 +46,7 @@ public class BoothDetailResponse {
         this.currentWaitingCount = currentWaitingCount;
         this.qrCodeUrl = qrCodeUrl;
         this.imageUrl = imageUrl;
+        this.festivalId = festivalId;
         this.products = products;
     }
 
@@ -62,6 +66,7 @@ public class BoothDetailResponse {
                 booth.getCurrentWaitingCount(),
                 qrCodeUrl,
                 booth.getImageUrl(),
+                booth.getFestival() != null ? booth.getFestival().getId() : null,
                 prodResponses
         );
     }

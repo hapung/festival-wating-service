@@ -66,6 +66,23 @@ public class FestivalController {
     }
 
     @Operation(
+        summary = "[상인] 부스 및 판매 상품(메뉴) 수정",
+        description = "상인이 자신의 부스 정보와 판매 메뉴 리스트를 수정합니다. (본인 부스만 수정 가능)"
+    )
+    @PutMapping("/api/booths/{boothId}")
+    public ResponseEntity<BoothDetailResponse> updateBooth(
+            @PathVariable("boothId") Long boothId,
+            @RequestBody BoothRegisterRequest request,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.User principal
+    ) {
+        if (principal == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+        }
+        Booth booth = festivalService.updateBooth(boothId, request, principal.getUsername());
+        return ResponseEntity.ok(BoothDetailResponse.from(booth));
+    }
+
+    @Operation(
         summary = "[사용자] 특정 축제의 전체 부스 및 실시간 웨이팅 조회",
         description = "축제 고유 식별 ID(festivalId)에 등록된 모든 부스 정보, 메뉴판, 그리고 각 부스별 현재 실시간 대기 인원수(currentWaitingCount)를 한눈에 볼 수 있도록 반환합니다."
     )

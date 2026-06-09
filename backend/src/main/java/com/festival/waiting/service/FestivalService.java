@@ -192,6 +192,7 @@ public class FestivalService {
                         prodDto.getImageUrl()
                 );
                 productRepository.save(product);
+                savedBooth.getProducts().add(product);
             }
         }
 
@@ -252,5 +253,49 @@ public class FestivalService {
 
         Festival festival = new Festival(name, description, location, startDate, endDate, organizer);
         return festivalRepository.save(festival);
+    }
+
+    /**
+     * [상인] 자신의 상점(부스)과 메뉴 리스트를 수정합니다.
+     */
+    @Transactional
+    public Booth updateBooth(Long boothId, BoothRegisterRequest request, String merchantUsername) {
+        log.info("[상인 부스 수정] 부스 ID: {}, 상인 ID: {}, 부스명: {}", boothId, merchantUsername, request.getName());
+
+        com.festival.waiting.domain.User merchant = userRepository.findByUsername(merchantUsername)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상인 계정입니다: " + merchantUsername));
+
+        Booth booth = boothRepository.findById(boothId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 부스 ID입니다: " + boothId));
+
+        // 검증: 본인의 부스만 수정할 수 있어야 합니다 (어드민 또는 승인된 본인)
+        if (merchant.getRole() != com.festival.waiting.domain.User.Role.ROLE_ADMIN && 
+            (booth.getMerchant() == null || !booth.getMerchant().getUsername().equals(merchantUsername))) {
+            throw new IllegalArgumentException("자신의 부스 정보만 수정할 수 있습니다.");
+        }
+
+        Festival festival = festivalRepository.findById(request.getFestivalId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 축제 ID입니다: " + request.getFestivalId()));
+
+        // 부스 정보 업데이트
+        booth.updateInfo(festival, request.getName(), request.getDescription(), request.getLocationDescription(), request.getImageUrl());
+
+        // 기존 상품 제거 후 신규 추가
+        booth.getProducts().clear();
+        if (request.getProducts() != null) {
+            for (BoothRegisterRequest.ProductDto prodDto : request.getProducts()) {
+                Product product = new Product(
+                        booth,
+                        prodDto.getName(),
+                        prodDto.getPrice(),
+                        prodDto.getDescription(),
+                        prodDto.getIsSpecialty(),
+                        prodDto.getImageUrl()
+                );
+                booth.getProducts().add(product);
+            }
+        }
+
+        return boothRepository.save(booth);
     }
 }
