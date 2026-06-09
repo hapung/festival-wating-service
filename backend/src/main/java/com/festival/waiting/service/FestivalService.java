@@ -50,6 +50,9 @@ public class FestivalService {
         log.info("[축제 캐시 초기화] H2 DB에 기본 4대 축제 데이터 미리 구축 시작");
         List<Map<String, Object>> rawFestivals = externalApiService.fetchRealFestivals("20260101");
         for (Map<String, Object> raw : rawFestivals) {
+            if (raw.get("title") == null || raw.get("eventstartdate") == null || raw.get("eventenddate") == null) {
+                continue;
+            }
             String title = raw.get("title").toString();
             String addr = raw.get("addr1") != null ? raw.get("addr1").toString() : "위치 정보 없음";
             String startStr = raw.get("eventstartdate").toString();
@@ -58,9 +61,7 @@ public class FestivalService {
             LocalDate start = LocalDate.parse(startStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
             LocalDate end = LocalDate.parse(endStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-            festivalRepository.findAll().stream()
-                    .filter(f -> f.getName().equals(title))
-                    .findFirst()
+            festivalRepository.findByName(title)
                     .orElseGet(() -> {
                         Festival newFest = new Festival(title, title + " 축제입니다.", addr, start, end);
                         festivalRepository.save(newFest);
@@ -119,6 +120,9 @@ public class FestivalService {
             double distance = externalApiService.calculateDistanceKm(userLat, userLon, festLat, festLon);
 
             // 4. 날짜 및 로컬 DB 동기화 (필터링 여부와 상관없이 무조건 캐싱하여 전체 축제 목록을 동기화)
+            if (raw.get("title") == null || raw.get("eventstartdate") == null || raw.get("eventenddate") == null) {
+                continue;
+            }
             String title = raw.get("title").toString();
             String addr = raw.get("addr1") != null ? raw.get("addr1").toString() : "위치 정보 없음";
             String startStr = raw.get("eventstartdate").toString();
@@ -128,9 +132,7 @@ public class FestivalService {
             LocalDate end = LocalDate.parse(endStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
 
             // DB 검색 또는 저장
-            Festival festival = festivalRepository.findAll().stream()
-                    .filter(f -> f.getName().equals(title))
-                    .findFirst()
+            Festival festival = festivalRepository.findByName(title)
                     .orElseGet(() -> {
                         Festival newFest = new Festival(title, title + " 축제입니다.", addr, start, end);
                         festivalRepository.save(newFest);

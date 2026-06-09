@@ -70,12 +70,12 @@ public class WaitingController {
         description = "손님이 부스를 직접 방문하여 서비스를 원활히 이용하기 시작했을 때 호출합니다. 이 작업이 실행되면 해당 손님의 대기 상태가 방문완료(COMPLETED)로 전환되고 부스의 실시간 대기 팀 수(currentWaitingCount)가 1 감소합니다."
     )
     @PostMapping("/api/waitings/{waitingId}/complete")
-    public ResponseEntity<Void> completeWaiting(
+    public ResponseEntity<WaitingResponse> completeWaiting(
             @Parameter(description = "방문 완료 처리하려는 대기 내역 고유 식별 ID", example = "102")
             @PathVariable("waitingId") Long waitingId
     ) {
-        waitingService.completeWaiting(waitingId);
-        return ResponseEntity.ok().build();
+        Waiting waiting = waitingService.completeWaiting(waitingId);
+        return ResponseEntity.ok(WaitingResponse.from(waiting));
     }
 
     @Operation(
@@ -83,12 +83,12 @@ public class WaitingController {
         description = "대기 신청한 손님이 자발적으로 예약을 취소하거나, 호출했음에도 고객이 오지 않아 상인이 노쇼(No-show) 취소 처리할 때 공통으로 호출합니다. 대기 상태가 취소(CANCELLED)로 변경되며 실시간 대기자 수(currentWaitingCount)가 1 감소합니다."
     )
     @PostMapping("/api/waitings/{waitingId}/cancel")
-    public ResponseEntity<Void> cancelWaiting(
+    public ResponseEntity<WaitingResponse> cancelWaiting(
             @Parameter(description = "자발적 취소 또는 노쇼 취소 처리할 대기 내역 고유 식별 ID", example = "102")
             @PathVariable("waitingId") Long waitingId
     ) {
-        waitingService.cancelWaiting(waitingId);
-        return ResponseEntity.ok().build();
+        Waiting waiting = waitingService.cancelWaiting(waitingId);
+        return ResponseEntity.ok(WaitingResponse.from(waiting));
     }
 
     @Operation(

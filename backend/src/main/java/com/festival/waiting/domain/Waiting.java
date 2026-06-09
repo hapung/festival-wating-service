@@ -75,14 +75,12 @@ public class Waiting {
         this.updatedAt = LocalDateTime.now();
     }
 
-    /**
-     * 상인이 고객을 호출할 때 호출 (WAITING -> CALLED)
-     */
     public void markAsCalled() {
         if (this.status != WaitingStatus.WAITING) {
             throw new IllegalStateException("대기 중(WAITING) 상태의 예약만 호출할 수 있습니다.");
         }
         this.status = WaitingStatus.CALLED;
+        this.booth.decreaseWaitingCount();
     }
 
     /**
@@ -92,8 +90,10 @@ public class Waiting {
         if (this.status != WaitingStatus.WAITING && this.status != WaitingStatus.CALLED) {
             throw new IllegalStateException("대기 중(WAITING) 또는 호출 완료(CALLED) 상태의 예약만 완료 처리할 수 있습니다.");
         }
+        if (this.status == WaitingStatus.WAITING) {
+            this.booth.decreaseWaitingCount();
+        }
         this.status = WaitingStatus.COMPLETED;
-        this.booth.decreaseWaitingCount();
     }
 
     /**
@@ -103,7 +103,9 @@ public class Waiting {
         if (this.status != WaitingStatus.WAITING && this.status != WaitingStatus.CALLED) {
             throw new IllegalStateException("대기 중(WAITING) 또는 호출 완료(CALLED) 상태의 예약만 취소 처리할 수 있습니다.");
         }
+        if (this.status == WaitingStatus.WAITING) {
+            this.booth.decreaseWaitingCount();
+        }
         this.status = WaitingStatus.CANCELLED;
-        this.booth.decreaseWaitingCount();
     }
 }

@@ -19,3 +19,8 @@ logs/
 
 # Claude Code
 .claude/
+
+# Gradle, build & archives
+.gradle/
+build/
+*.tar.gz

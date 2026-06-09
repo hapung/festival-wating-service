@@ -118,7 +118,7 @@ public class WaitingService {
      * [상인] 손님이 부스에 방문하여 식사 또는 서비스 이용을 시작하여 웨이팅을 '완료' 처리합니다.
      */
     @Transactional
-    public void completeWaiting(Long waitingId) {
+    public Waiting completeWaiting(Long waitingId) {
         log.info("[웨이팅 완료 요청] 대기 ID: {}", waitingId);
         Waiting waiting = waitingRepository.findById(waitingId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 대기 내역입니다. ID: " + waitingId));
@@ -131,13 +131,14 @@ public class WaitingService {
         
         // 대기열이 당겨짐에 따라 자동 임박 문자 발송 체크
         checkAndSendNearAlerts(waiting.getBooth().getId());
+        return waiting;
     }
 
     /**
      * [사용자/상인] 고객의 자발적 취소 또는 노쇼로 인한 웨이팅 '취소' 처리입니다.
      */
     @Transactional
-    public void cancelWaiting(Long waitingId) {
+    public Waiting cancelWaiting(Long waitingId) {
         log.info("[웨이팅 취소 요청] 대기 ID: {}", waitingId);
         Waiting waiting = waitingRepository.findById(waitingId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 대기 내역입니다. ID: " + waitingId));
@@ -150,6 +151,7 @@ public class WaitingService {
         
         // 대기열이 당겨짐에 따라 자동 임박 문자 발송 체크
         checkAndSendNearAlerts(waiting.getBooth().getId());
+        return waiting;
     }
 
     /**

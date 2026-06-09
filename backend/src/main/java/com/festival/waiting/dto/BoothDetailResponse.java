@@ -55,11 +55,14 @@ public class BoothDetailResponse {
                 .map(ProductDetailResponse::from)
                 .collect(Collectors.toList());
 
-        String baseUrl = "http://localhost:8080";
-        try {
-            baseUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-        } catch (Exception e) {
-            // Fallback for tests or non-web contexts
+        String baseUrl = com.festival.waiting.security.AppConfigHolder.serverUrl;
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            baseUrl = "http://localhost:8080";
+            try {
+                baseUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+            } catch (Exception e) {
+                // Fallback for tests or non-web contexts
+            }
         }
 
         String targetUrl = baseUrl + "/booth.html?boothId=" + booth.getId();
