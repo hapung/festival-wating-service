@@ -1,68 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
+    /* Design tokens */
+    --paper:    #ffffff;
+    --paper2:   #faf8f4;
+    --ink:      #34322e;
+    --ink2:     #7c7972;
+    --ink3:     #a9a59c;
+    --line:     #d8d4cc;
+    --line2:    #e8e5de;
+    --fill:     #efece6;
+    --fill2:    #f6f4ef;
+    --accent:       #e08a45;
+    --accent-ink:   #b56a2c;
+    --accent-soft:  #f8e9d8;
+    --fw-green:      #4CAF50;
+    --fw-yellow:     #F0B400;
+    --fw-red:        #E5483B;
+    --fw-green-soft: #e6f2e6;
+    --fw-yellow-soft:#fbf0cf;
+    --fw-red-soft:   #fbe4e1;
+    --fw-gray-soft:  #eceae5;
+
+    /* shadcn tokens */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
+    --foreground: 25 10% 18%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 25 10% 18%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210.40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --popover-foreground: 25 10% 18%;
+    --primary: 28 72% 57%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 30 20% 93%;
+    --secondary-foreground: 25 10% 18%;
+    --muted: 30 20% 93%;
+    --muted-foreground: 25 10% 48%;
+    --accent: 30 20% 93%;
+    --accent-foreground: 25 10% 18%;
+    --destructive: 4 77% 57%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 15% 84%;
+    --input: 30 15% 84%;
+    --ring: 28 72% 57%;
+    --radius: 0.75rem;
   }
 }
 
@@ -71,6 +56,77 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[#faf8f4] text-[#34322e];
+    font-family: 'Gowun Dodum', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
   }
 }
+
+/* Numeric font utility */
+.font-num {
+  font-family: 'IBM Plex Sans KR', system-ui, sans-serif;
+}
+
+/* Custom Scrollbar Styles */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(216, 212, 204, 0.65) transparent;
+}
+
+@supports not (scrollbar-color: auto) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(216, 212, 204, 0.65);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(181, 106, 44, 0.8);
+  }
+}
+
+/* 스크롤바 숨김 유틸리티 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* 앱 전용 얇은 스크롤바 */
+.nice-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #d8d4cc transparent;
+}
+.nice-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+.nice-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.nice-scroll::-webkit-scrollbar-thumb {
+  background: #d8d4cc;
+  border-radius: 999px;
+}
+.nice-scroll::-webkit-scrollbar-thumb:hover {
+  background: #b56a2c;
+}
+
+/* 지도 마커 말풍선 애니메이션 */
+@keyframes fw-bubble-in {
+  0%   { opacity: 0; transform: translateY(8px) scale(0.84); }
+  65%  { transform: translateY(-4px) scale(1.05); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.fw-map-bubble {
+  animation: fw-bubble-in 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transform-origin: bottom center;
+}
+

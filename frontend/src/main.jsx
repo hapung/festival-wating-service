@@ -1,14 +1,25 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
 import App from './App.jsx'
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+})
+
 async function enableMocking() {
-  // 개발 환경이면서 VITE_USE_MSW가 true일 때만 실행
-  if (
-    process.env.NODE_ENV !== 'development' ||
-    import.meta.env.VITE_USE_MSW !== 'true'
-  ) {
+  // MSW 비활성화 시 기존 서비스 워커 자동 해제
+  if (import.meta.env.VITE_USE_MSW !== 'true') {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations()
+      await Promise.all(regs.map(r => r.unregister()))
+    }
     return
   }
 
@@ -16,11 +27,17 @@ async function enableMocking() {
   return worker.start()
 }
 
-enableMocking().then(() => {
-  createRoot(document.getElementById('root')).render(
-    <StrictMode>
-      <App />
-    </StrictMode>,
-  )
-})
+enableMocking()
+  .catch((err) => {
+    console.error('Failed to start MSW:', err)
+  })
+  .finally(() => {
+    createRoot(document.getElementById('root')).render(
+      <StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
+      </StrictMode>,
+    )
+  })
 
