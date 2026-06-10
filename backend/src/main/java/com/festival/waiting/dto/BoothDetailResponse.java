@@ -55,17 +55,11 @@ public class BoothDetailResponse {
                 .map(ProductDetailResponse::from)
                 .collect(Collectors.toList());
 
-        String baseUrl = com.festival.waiting.security.AppConfigHolder.serverUrl;
-        if (baseUrl == null || baseUrl.isEmpty()) {
-            baseUrl = "http://localhost:8080";
-            try {
-                baseUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-            } catch (Exception e) {
-                // Fallback for tests or non-web contexts
-            }
+        String frontendUrl = System.getenv("FRONTEND_URL");
+        if (frontendUrl == null) {
+            frontendUrl = "https://three-29.vercel.app";
         }
-
-        String targetUrl = baseUrl + "/booth.html?boothId=" + booth.getId();
+        String targetUrl = frontendUrl + "/qr/" + booth.getId();
         String qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + targetUrl;
 
         return new BoothDetailResponse(
