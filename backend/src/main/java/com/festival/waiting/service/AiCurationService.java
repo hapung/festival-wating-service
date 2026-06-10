@@ -40,7 +40,7 @@ public class AiCurationService {
         // 1. 해당 축제의 등록 부스 전체 로드
         List<Booth> allBooths = festivalService.getBoothsByFestival(request.getFestivalId());
 
-        String query = request.getUserMessage().toLowerCase();
+        String query = (request.getUserMessage() != null) ? request.getUserMessage().toLowerCase() : "";
 
         // 2. 키워드 및 대기 상태에 따른 지능형 필터링
         List<Booth> filteredBooths = allBooths.stream()

@@ -41,9 +41,10 @@ public class AiCurationController {
     )
     @org.springframework.web.bind.annotation.GetMapping("/api/ai/curate")
     public ResponseEntity<com.festival.waiting.dto.AiCurationResponse> curateByQuery(
-            @org.springframework.web.bind.annotation.RequestParam("query") String query
+            @org.springframework.web.bind.annotation.RequestParam(value = "query", required = false) String query
     ) {
-        com.festival.waiting.dto.AiCurationResponse response = aiCurationService.curateByQuery(query);
+        String targetQuery = (query != null && !query.trim().isEmpty()) ? query : "";
+        com.festival.waiting.dto.AiCurationResponse response = aiCurationService.curateByQuery(targetQuery);
         return ResponseEntity.ok(response);
     }
 }

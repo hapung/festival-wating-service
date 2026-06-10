@@ -41,6 +41,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/booths/**").permitAll()
                 .requestMatchers("/api/waitings/**").permitAll()
                 .requestMatchers("/api/spots/**").permitAll()
+                .requestMatchers("/api/ai/curate", "/api/ai/curate-booths").permitAll()
                 .requestMatchers("/api/ai/**").permitAll()
                 
                 // 정적 리소스, Swagger UI 및 H2 콘솔 전체 개방

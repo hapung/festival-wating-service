@@ -19,6 +19,7 @@ public class AiCurationRequest {
         example = "사람 적고 특산품 들어간 향토 메뉴 파는 부스 추천해줘",
         requiredMode = Schema.RequiredMode.REQUIRED
     )
+    @com.fasterxml.jackson.annotation.JsonAlias({"query", "message"})
     private String userMessage;
 
     public AiCurationRequest(Long festivalId, String userMessage) {
