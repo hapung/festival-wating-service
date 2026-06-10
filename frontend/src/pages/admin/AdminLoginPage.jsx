@@ -63,11 +63,14 @@ export default function AdminLoginPage() {
       const payload = decodeJWT(data.token)
       const role = payload?.role || 'ROLE_MERCHANT'
       
-      // 1) username 키로 저장된 boothId 확인
+      // 1) JWT 페이로드에 들어있는 boothId 확인 (백엔드 지원 시)
+      const payloadBoothId = payload?.boothId
+      // 2) username 키로 저장된 boothId 확인
       const savedBoothId = localStorage.getItem(`booth_${username}`)
-      // 2) 혹은 기존 localStorage 세션에 남아있는 boothId 활용 (코드 변경 이전 등록된 부스 복원)
+      // 3) 혹은 기존 localStorage 세션에 남아있는 boothId 활용 (코드 변경 이전 등록된 부스 복원)
       const prevSession = (() => { try { return JSON.parse(localStorage.getItem('admin_session')) } catch { return null } })()
-      const resolvedBoothId = savedBoothId ? Number(savedBoothId) : (prevSession?.boothId || null)
+      
+      const resolvedBoothId = payloadBoothId ? Number(payloadBoothId) : (savedBoothId ? Number(savedBoothId) : (prevSession?.boothId || null))
 
       const storage = keep ? localStorage : sessionStorage
       storage.setItem('admin_session', JSON.stringify({

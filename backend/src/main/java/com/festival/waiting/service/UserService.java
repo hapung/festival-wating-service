@@ -2,7 +2,9 @@ package com.festival.waiting.service;
 
 import com.festival.waiting.domain.User;
 import com.festival.waiting.repository.UserRepository;
+import com.festival.waiting.repository.BoothRepository;
 import com.festival.waiting.security.JwtTokenProvider;
+import com.festival.waiting.domain.Booth;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -18,6 +20,7 @@ import java.util.List;
 public class UserService implements CommandLineRunner {
 
     private final UserRepository userRepository;
+    private final BoothRepository boothRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -74,7 +77,11 @@ public class UserService implements CommandLineRunner {
             throw new IllegalArgumentException("아직 승인되지 않은 계정입니다. 관리자의 승인을 기다려 주세요.");
         }
 
-        return jwtTokenProvider.createToken(user.getUsername(), user.getRole().name());
+        Long boothId = boothRepository.findByMerchantId(user.getId())
+                .map(Booth::getId)
+                .orElse(null);
+
+        return jwtTokenProvider.createToken(user.getUsername(), user.getRole().name(), boothId);
     }
 
     /**

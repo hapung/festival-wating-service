@@ -34,13 +34,14 @@ public class JwtTokenProvider {
     /**
      * 주최측/상인용 일반 로그인 토큰 발급
      */
-    public String createToken(String username, String role) {
+    public String createToken(String username, String role, Long boothId) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + this.tokenValidityInMilliseconds);
 
         return Jwts.builder()
                 .setSubject(username)
                 .claim("role", role)
+                .claim("boothId", boothId)
                 .setIssuedAt(now)
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS512)
