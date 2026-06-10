@@ -36,7 +36,17 @@ function useGeocodedFestivals(festivals) {
             _geoCache[f.location] = coords
             resolve({ ...f, ...coords })
           } else {
-            resolve(f)
+            // 주소 검색 실패 시 키워드 검색으로 폴백 (예: "올림픽공원" 등 명칭 검색)
+            const places = new kakao.maps.services.Places()
+            places.keywordSearch(f.location, (pResult, pStatus) => {
+              if (pStatus === kakao.maps.services.Status.OK && pResult[0]) {
+                const coords = { lat: parseFloat(pResult[0].y), lng: parseFloat(pResult[0].x) }
+                _geoCache[f.location] = coords
+                resolve({ ...f, ...coords })
+              } else {
+                resolve(f) // 둘 다 실패하면 그냥 반환 (지도에 안 뜸)
+              }
+            })
           }
         })
       }))
