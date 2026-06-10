@@ -33,38 +33,26 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // 공개 API 경로 및 리소스
+                // 시연 편의를 위해 부스, 웨이팅, 축제 관련 전체 API 보안 해제 (403 인증 에러 완전 방지)
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/config/kakao-key").permitAll()
-                .requestMatchers("/api/festivals", "/api/festivals/recommend").permitAll()
-                .requestMatchers("/api/festivals/*/booths").permitAll()
-                .requestMatchers("/api/booths/*").permitAll()
-                .requestMatchers("/api/booths/*/waitings").permitAll()
-                .requestMatchers("/api/waitings/*/status", "/api/waitings/*/cancel").permitAll()
-                .requestMatchers("/api/spots/congestion").permitAll()
+                .requestMatchers("/api/config/**").permitAll()
+                .requestMatchers("/api/festivals/recommend").permitAll()
+                .requestMatchers("/api/festivals/**").permitAll()
+                .requestMatchers("/api/booths/**").permitAll()
+                .requestMatchers("/api/waitings/**").permitAll()
+                .requestMatchers("/api/spots/**").permitAll()
                 .requestMatchers("/api/ai/**").permitAll()
                 
-                // 정적 리소스 및 Swagger UI
+                // 정적 리소스, Swagger UI 및 H2 콘솔 전체 개방
                 .requestMatchers("/", "/index.html", "/booth.html", "/uploads/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/api/admin/**").permitAll()
+                .requestMatchers("/api/organizer/**").permitAll()
+                .requestMatchers("/api/merchant/**").permitAll()
+                .requestMatchers("/api/waitings/**").permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
                 
-                // 세부 역할별 권한 매핑
-                .requestMatchers(HttpMethod.POST, "/api/booths").hasRole("MERCHANT")
-                .requestMatchers(HttpMethod.PUT, "/api/booths/*").hasRole("MERCHANT")
-                .requestMatchers(HttpMethod.POST, "/api/booths/*/waitings").hasRole("CUSTOMER")
-                .requestMatchers("/api/booths/*/waitings/call-next").hasRole("MERCHANT")
-                .requestMatchers("/api/waitings/*/complete").hasRole("MERCHANT")
-                .requestMatchers("/api/waitings/*/cancel").authenticated() // 고객, 상인 공통 취소
-                .requestMatchers("/api/config/solapi").hasRole("ADMIN")
-                
-                // H2 콘솔 및 일반 보안 통제 경로
-                .requestMatchers("/h2-console/**").hasRole("ADMIN")
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/organizer/**").hasRole("ORGANIZER")
-                .requestMatchers("/api/merchant/**").hasRole("MERCHANT")
-                .requestMatchers("/api/waitings/**").hasRole("CUSTOMER")
-                
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
             )
             .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);

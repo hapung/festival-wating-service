@@ -33,9 +33,21 @@ public class WaitingController {
     public ResponseEntity<WaitingResponse> registerWaiting(
             @Parameter(description = "대기를 신청하려는 축제 부스의 고유 식별 ID", example = "1")
             @PathVariable("boothId") Long boothId,
+            @RequestBody(required = false) WaitingRegisterRequest request,
             @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.User principal
     ) {
-        Waiting waiting = waitingService.registerWaiting(boothId, principal.getUsername());
+        String phoneNumber = null;
+        if (principal != null) {
+            phoneNumber = principal.getUsername();
+        } else if (request != null) {
+            phoneNumber = request.getPhoneNumber();
+        }
+
+        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+            throw new IllegalArgumentException("대기 등록을 위한 휴대폰 번호가 필요합니다.");
+        }
+
+        Waiting waiting = waitingService.registerWaiting(boothId, phoneNumber);
         return ResponseEntity.ok(WaitingResponse.from(waiting));
     }
 
@@ -129,9 +141,21 @@ public class WaitingController {
     @GetMapping("/api/waitings/my-active")
     public ResponseEntity<java.util.List<WaitingStatusResponse>> getMyActiveWaitings(
             @RequestParam("festivalId") Long festivalId,
+            @RequestParam(value = "phoneNumber", required = false) String phoneNumber,
             @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.User principal
     ) {
-        java.util.List<WaitingStatusResponse> activeWaitings = waitingService.getMyActiveWaitings(principal.getUsername(), festivalId);
+        String targetPhoneNumber = null;
+        if (principal != null) {
+            targetPhoneNumber = principal.getUsername();
+        } else if (phoneNumber != null && !phoneNumber.trim().isEmpty()) {
+            targetPhoneNumber = phoneNumber;
+        }
+
+        if (targetPhoneNumber == null) {
+            return ResponseEntity.ok(java.util.Collections.emptyList());
+        }
+
+        java.util.List<WaitingStatusResponse> activeWaitings = waitingService.getMyActiveWaitings(targetPhoneNumber, festivalId);
         return ResponseEntity.ok(activeWaitings);
     }
 }

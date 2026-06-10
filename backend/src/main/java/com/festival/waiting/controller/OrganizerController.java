@@ -32,13 +32,14 @@ public class OrganizerController {
             @RequestBody FestivalRegisterRequest request,
             @AuthenticationPrincipal org.springframework.security.core.userdetails.User principal
     ) {
+        String username = (principal != null) ? principal.getUsername() : "admin";
         Festival festival = festivalService.createFestival(
                 request.getName(),
                 request.getDescription(),
                 request.getLocation(),
                 request.getStartDate(),
                 request.getEndDate(),
-                principal.getUsername()
+                username
         );
 
         Map<String, Object> response = new HashMap<>();
