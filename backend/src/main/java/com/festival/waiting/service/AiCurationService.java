@@ -5,11 +5,21 @@ import com.festival.waiting.dto.AiCurationRequest;
 import com.festival.waiting.dto.BoothDetailResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -83,6 +93,7 @@ public class AiCurationService {
     /**
      * [AI 에이전트 연동] 자연어 질의 기반 통합 큐레이션 서비스
      * 프론트엔드 AI 질의창의 'GET /api/ai/curate?query=...' 규격을 충족합니다.
+     * 엔노니아 AI 프리셋 API와 연동되어 답변을 생성합니다.
      */
     @Transactional(readOnly = true)
     public com.festival.waiting.dto.AiCurationResponse curateByQuery(String query) {
@@ -109,6 +120,71 @@ public class AiCurationService {
             aiRecommendationReason = "전체 리스트 중 실시간 대기 인원이 적은 쾌적한 부스와 인근 명소를 골라 추천합니다.";
             recommendedSpots.add(new com.festival.waiting.dto.RecommendedSpotDto("서울 올림픽공원 장미광장", 30, "쾌적", 0.8));
             recommendedSpots.add(new com.festival.waiting.dto.RecommendedSpotDto("한강공원 망원지구", 65, "보통", 2.3));
+        }
+
+        // 2. 엔노니아 AI 프리셋 API 호출 연동
+        String aiResponse = null;
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("project", "KNTO-PROMPTON-2026-507");
+            headers.set("apiKey", "010c8b1babf3ba3827869951b504c0bced017c7861e942a2ba06afa14cf02a79");
+            headers.set("Content-Type", "application/json; charset=utf-8");
+
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("hash", "e3cf0d1e84a8c3b9362bb5ee9e000b3b2475bb51a71f94ce8d9c4d9328daf9ba");
+            requestBody.put("params", new HashMap<>());
+            
+            List<Map<String, Object>> messages = new ArrayList<>();
+            Map<String, Object> userMessage = new HashMap<>();
+            userMessage.put("role", "user");
+            
+            List<Map<String, Object>> contentList = new ArrayList<>();
+            Map<String, Object> textContent = new HashMap<>();
+            textContent.put("type", "text");
+            textContent.put("text", query);
+            contentList.add(textContent);
+            
+            userMessage.put("content", contentList);
+            messages.add(userMessage);
+            requestBody.put("messages", messages);
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+            log.info("[엔노니아 AI API 요청 전송] 엔드포인트 호출 중...");
+            ResponseEntity<String> response = restTemplate.exchange(
+                "https://api.ennoia.so/api/preset/v2/chat/completions",
+                HttpMethod.POST,
+                entity,
+                String.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode root = objectMapper.readTree(response.getBody());
+                JsonNode choices = root.path("choices");
+                if (choices.isArray() && choices.size() > 0) {
+                    JsonNode messageNode = choices.get(0).path("message");
+                    JsonNode contentNode = messageNode.path("content");
+                    
+                    if (contentNode.isTextual()) {
+                        aiResponse = contentNode.asText();
+                    } else if (contentNode.isArray() && contentNode.size() > 0) {
+                        aiResponse = contentNode.get(0).path("text").asText();
+                    }
+                    
+                    if (aiResponse != null) {
+                        log.info("[엔노니아 AI API 응답 수신 성공] 길이: {}자", aiResponse.length());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("[엔노니아 API 연동 에러] API 호출 중 오류가 발생하여 기본 로컬 추천 텍스트로 대체합니다: {}", e.getMessage());
+        }
+
+        // 성공적으로 응답을 받았을 경우 AI 답변으로 덮어씀
+        if (aiResponse != null && !aiResponse.trim().isEmpty()) {
+            aiRecommendationReason = aiResponse;
         }
 
         return new com.festival.waiting.dto.AiCurationResponse(query, parsedLocation, recommendedSpots, aiRecommendationReason);
