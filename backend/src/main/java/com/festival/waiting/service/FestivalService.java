@@ -113,6 +113,10 @@ public class FestivalService {
         double maxDist = request.getMaxDistanceKm() != null ? request.getMaxDistanceKm() : 50.0;
 
         for (Map<String, Object> raw : rawFestivals) {
+            if (raw.get("mapx") == null || raw.get("mapy") == null ||
+                raw.get("mapx").toString().trim().isEmpty() || raw.get("mapy").toString().trim().isEmpty()) {
+                continue;
+            }
             double festLon = Double.parseDouble(raw.get("mapx").toString());
             double festLat = Double.parseDouble(raw.get("mapy").toString());
 
