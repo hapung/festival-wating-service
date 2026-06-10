@@ -26,7 +26,14 @@ public class ExternalApiService {
     @Value("${api.kakao.rest-api-key}")
     private String kakaoRestApiKey;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+
+    public ExternalApiService() {
+        org.springframework.http.client.SimpleClientHttpRequestFactory factory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(500); // 500ms
+        factory.setReadTimeout(500);    // 500ms
+        this.restTemplate = new RestTemplate(factory);
+    }
 
     /**
      * Kakao Local API를 이용하여 지명이나 한글 주소를 위도/경도 좌표로 변환합니다.

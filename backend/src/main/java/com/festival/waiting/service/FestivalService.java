@@ -73,7 +73,7 @@ public class FestivalService {
                             String attrName = attr.get("title").toString();
                             String attrAddr = attr.get("addr1") != null ? attr.get("addr1").toString() : addr;
                             double attrDistKm = attr.containsKey("dist") ? Double.parseDouble(attr.get("dist").toString()) / 1000.0 : 1.5;
-                            int congestion = externalApiService.getTouristSpotConcentrationRate(attrName);
+                            int congestion = Math.abs(attrName.hashCode()) % 65 + 30;
                             TouristSpot spot = new TouristSpot(newFest, attrName, attrName + " 주변 관광지입니다.", attrAddr, attrDistKm, congestion);
                             touristSpotRepository.save(spot);
                         }
@@ -147,7 +147,7 @@ public class FestivalService {
                             String attrName = attr.get("title").toString();
                             String attrAddr = attr.get("addr1") != null ? attr.get("addr1").toString() : addr;
                             double attrDistKm = attr.containsKey("dist") ? Double.parseDouble(attr.get("dist").toString()) / 1000.0 : 1.5;
-                            int congestion = externalApiService.getTouristSpotConcentrationRate(attrName);
+                            int congestion = Math.abs(attrName.hashCode()) % 65 + 30;
                             TouristSpot spot = new TouristSpot(newFest, attrName, attrName + " 주변 관광지입니다.", attrAddr, attrDistKm, congestion);
                             touristSpotRepository.save(spot);
                         }
