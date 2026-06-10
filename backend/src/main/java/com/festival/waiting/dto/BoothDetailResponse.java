@@ -57,7 +57,7 @@ public class BoothDetailResponse {
 
         String frontendUrl = System.getenv("FRONTEND_URL");
         if (frontendUrl == null) {
-            frontendUrl = "https://three-29.vercel.app";
+            frontendUrl = "https://frontend-black-three-29.vercel.app";
         }
         String targetUrl = frontendUrl + "/qr/" + booth.getId();
         String qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + targetUrl;
