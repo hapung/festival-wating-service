@@ -164,8 +164,18 @@ public class AiCurationService {
                 JsonNode root = objectMapper.readTree(response.getBody());
                 JsonNode choices = root.path("choices");
                 if (choices.isArray() && choices.size() > 0) {
-                    aiResponse = choices.get(0).path("message").path("content").asText();
-                    log.info("[엔노니아 AI API 응답 수신 성공] 길이: {}자", aiResponse.length());
+                    JsonNode messageNode = choices.get(0).path("message");
+                    JsonNode contentNode = messageNode.path("content");
+                    
+                    if (contentNode.isTextual()) {
+                        aiResponse = contentNode.asText();
+                    } else if (contentNode.isArray() && contentNode.size() > 0) {
+                        aiResponse = contentNode.get(0).path("text").asText();
+                    }
+                    
+                    if (aiResponse != null) {
+                        log.info("[엔노니아 AI API 응답 수신 성공] 길이: {}자", aiResponse.length());
+                    }
                 }
             }
         } catch (Exception e) {
