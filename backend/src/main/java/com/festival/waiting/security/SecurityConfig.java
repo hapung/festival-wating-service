@@ -36,6 +36,7 @@ public class SecurityConfig {
                 // 시연 편의를 위해 부스, 웨이팅, 축제 관련 전체 API 보안 해제 (403 인증 에러 완전 방지)
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/config/**").permitAll()
+                .requestMatchers("/api/festivals/recommend").permitAll()
                 .requestMatchers("/api/festivals/**").permitAll()
                 .requestMatchers("/api/booths/**").permitAll()
                 .requestMatchers("/api/waitings/**").permitAll()
