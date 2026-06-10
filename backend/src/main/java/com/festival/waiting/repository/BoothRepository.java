@@ -18,4 +18,6 @@ public interface BoothRepository extends JpaRepository<Booth, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select b from Booth b where b.id = :id")
     Optional<Booth> findByIdWithPessimisticLock(@Param("id") Long id);
+
+    Optional<Booth> findByMerchantId(Long merchantId);
 }
